@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PORTAL K3 TERPADU - PT KERTAS PADALARANG</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library QR Code Scanner & Generator -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+            #printAreaTemuan, #printAreaTemuan * { visibility: visible; }
+            #printAreaTemuan { position: absolute; left: 0; top: 0; width: 100%; }
+            #printAreaQr, #printAreaQr * { visibility: visible; }
+            #printAreaQr { position: absolute; left: 0; top: 0; width: 100%; background: white; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-white font-sans min-h-screen pb-12">
+
+    <!-- ================= 1. HALAMAN LOGIN / DASHBOARD LUAR (KARYAWAN) ================= -->
+    <div id="loginPage" class="min-h-screen flex flex-col bg-white">
+        <!-- Top Navbar untuk Halaman Luar -->
+        <header class="bg-red-700 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white px-2 py-1 rounded-lg flex items-center gap-2 shadow-sm">
+                        <img src="PTKP0.png" alt="Logo PTKP" class="h-6 object-contain" onerror="this.style.display='none'">
+                        <span class="text-slate-300 font-light">|</span>
+                        <img src="LOGO-K3-TRANSPARANT.png" alt="Logo K3" class="w-6 h-6 object-contain" onerror="this.style.display='none'">
+                    </div>
+                    <div>
+                        <h1 class="text-sm md:text-base font-bold leading-tight">PORTAL K3 TERPADU</h1>
+                        <p class="text-[10px] text-red-200 font-medium">PT Kertas Padalarang — Peta & Monitoring APAR</p>
+                    </div>
+                </div>
+                <!-- Tombol Login di Kanan Atas -->
+                <button onclick="openLoginModal()" class="bg-white text-red-700 hover:bg-red-50 font-bold px-4 py-2 rounded-lg text-xs shadow transition flex items-center gap-1.5">
+                    🔐 Masuk (Login)
+                </button>
+            </div>
+        </header>
+
+        <!-- Konten Utama Karyawan: Peta Penempatan APAR & Info -->
+        <main class="max-w-7xl mx-auto px-4 mt-6 flex-1 w-full space-y-6">
+            <div class="bg-white rounded-2xl shadow-md p-6 border space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span>🗺️ Peta Denah Penempatan APAR PT Kertas Padalarang (1-150)</span>
+                        </h2>
+                        <p class="text-xs text-slate-500">Peta layout pabrik interaktif untuk memantau posisi dan titik sebaran alat pemadam api.</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <input type="text" id="publicMapSearch" oninput="filterPublicMap()" placeholder="Cari Kode / Lokasi APAR..." class="px-3 py-1.5 border rounded-lg text-xs w-full md:w-64">
+                    </div>
+                </div>
+
+                <!-- Kontainer Peta Interaktif Publik -->
+                <div class="relative w-full overflow-auto border rounded-xl bg-slate-900 p-2 min-h-[500px] flex items-center justify-center">
+                    <div id="publicMapCanvas" class="relative inline-block w-full max-w-[1200px]">
+                        <img src="Layout Peta APAR.png" alt="Denah PTKP" class="w-full h-auto object-contain block opacity-90 rounded" onerror="this.src='https://via.placeholder.com/1200x800?text=Denah+Layout+PT+Kertas+Padalarang'">
+                        <!-- Titik Marker APAR akan dirender dinamis di sini -->
+                        <div id="publicMarkersLayer" class="absolute inset-0 pointer-events-none"></div>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-500 flex flex-wrap gap-4 items-center justify-between bg-slate-50 p-3 rounded-lg border">
+                    <span>💡 <b>Petunjuk:</b> Klik pada titik penanda nomor APAR di peta untuk melihat kotak popup spesifikasi lengkap & status pengecekan bulanan.</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-600 inline-block animate-pulse"></span> Titik Penempatan APAR</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL POPUP LOGIN -->
+    <div id="loginModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-6 relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
+            <div class="text-center space-y-1">
+                <h2 class="text-lg font-bold text-slate-900">Masuk ke Portal K3</h2>
+                <p class="text-xs text-slate-500">Masukkan akun Anda untuk mengakses fitur inspeksi atau admin.</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Username *</label>
+                    <input type="text" id="loginUser" required placeholder="Contoh: admin atau karyawan" 
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password *</label>
+                    <input type="password" id="loginPass" required placeholder="••••••••" 
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2.5 rounded-lg text-sm transition shadow">
+                    Masuk Sekarang
+                </button>
+            </form>
+            <div class="text-[11px] text-center text-slate-400 border-t pt-3">
+                Admin: <span class="font-bold">admin</span> / <span class="font-bold">admin123</span> | Karyawan: <span class="font-bold">karyawan</span> / <span class="font-bold">12345</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 2. APLIKASI UTAMA (SETELAH LOGIN) ================= -->
+    <div id="appContainer" class="hidden">
+        
+        <!-- Header / Navbar -->
+        <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 no-print">
+            <div class="max-w-7xl mx-auto px-4 py-2.5 flex justify-between items-center overflow-x-auto">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white px-2 py-1 rounded-lg flex items-center gap-2 shadow-sm">
+                        <img src="PTKP0.png" alt="Logo PTKP" class="h-6 object-contain" onerror="this.style.display='none'">
+                        <span class="text-slate-300 font-light">|</span>
+                        <img src="LOGO-K3-TRANSPARANT.png" alt="Logo K3" class="w-6 h-6 object-contain" onerror="this.style.display='none'">
+                    </div>
+                    <div>
+                        <h1 class="text-sm md:text-base font-bold leading-tight">PORTAL K3 TERPADU</h1>
+                        <p class="text-[10px] text-red-200 font-medium" id="headerRoleSubtitle">PT Kertas Padalarang</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2" id="navButtonsContainer"></div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 mt-6">
+            
+            <!-- MODUL 1: INSPEKSI APAR -->
+            <div id="modulApar" class="space-y-6 relative">
+
+                <!-- 🌟 ANIMASI MASKOT PEMADAM KEBAKARAN -->
+                <div class="fixed bottom-6 right-6 z-40 pointer-events-none no-print flex flex-col items-end">
+                    <div class="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full shadow-lg text-[10px] font-bold text-red-700 mb-1 border border-red-200 animate-bounce flex items-center gap-1">
+                        <span>🔥</span> Siaga APAR PTKP
+                    </div>
+                    <img src="firefighter-animation.gif" alt="Maskot Pemadam" class="w-28 md:w-36 h-auto object-contain pointer-events-none">
+                </div>
+
+                <!-- TAB NAVIGASI UTAMA MODUL APAR -->
+                <div class="flex gap-2 no-print mb-4 overflow-x-auto" id="aparTabNav">
+                    <button onclick="switchAparTab('form')" id="btnAparForm" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Formulir Cek</button>
+                    <button onclick="switchAparTab('statusList')" id="btnAparStatusList" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">📋 Status Cek APAR & Cadangan</button>
+                    <button onclick="switchAparTab('report')" id="btnAparReport" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Laporan & Rekap</button>
+                    <button onclick="switchAparTab('qrcode')" id="btnAparQr" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">Profil & Label QR (1-150)</button>
+                </div>
+
+                <!-- FORM APAR (UNTUK KARYAWAN) -->
+                <div id="tabAparForm" class="bg-white rounded-xl shadow-md p-6 border">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span>Formulir Pengecekan APAR Bulanan</span>
+                        <span class="text-xs font-normal text-slate-500">Departemen Jaminan Keandalan & K3LH</span>
+                    </h2>
+                    <form id="aparForm" onsubmit="handleAparSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Pengecekan (Sistem Otomatis) *</label>
+                                <input type="date" id="inspectionDate" disabled required class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-100 font-bold text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Kode / QR ID APAR *</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="code" required oninput="autoFillAparByCode(this.value)" placeholder="Contoh: APAR-001 atau CAD-001" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                    <button type="button" onclick="startScanner()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Scan QR</button>
+                                </div>
+                                <p class="text-[10px] text-blue-600 font-medium mt-1">💡 Scan QR atau ketik kode APAR / APAR Cadangan untuk mengisi lokasi & spesifikasi otomatis.</p>
+                            </div>
+                        </div>
+                        <div id="reader-container" class="hidden border rounded-lg p-2 bg-slate-50"><div id="reader"></div><button type="button" onclick="stopScanner()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded">Tutup Kamera</button></div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi / Seksi Area *</label><input type="text" id="location" required placeholder="Otomatis terisi dari data profil..." class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium"></div>
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Media *</label><select id="type" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium"><option value="Dry Chemical Powder">Dry Chemical Powder</option><option value="CO2">CO2</option><option value="Foam AFFF">Foam AFFF</option><option value="Clean Agent">Clean Agent</option></select></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Kapasitas (Kg) *</label><input type="number" id="capacity" required placeholder="Otomatis terisi..." class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium"></div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Tekanan *</label>
+                                <select id="pressureTypeInput" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium">
+                                    <option value="Manometer">Manometer</option>
+                                    <option value="Catridge">Catridge</option>
+                                    <option value="High Pressure">High Pressure</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Waktu Kedaluwarsa *</label>
+                                <input type="text" id="expDateInput" required placeholder="Otomatis / Isi manual..." class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium text-red-700 font-bold">
+                            </div>
+                        </div>
+
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama Petugas Inspeksi *</label><input type="text" id="inspector" required placeholder="Nama petugas..." class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+
+                        <div class="border-t pt-4 mt-4">
+                            <h3 class="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">Parameter Pemeriksaan Fisik APAR</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Pressure Gauge</label><select id="pressure" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Normal (Hijau)">Normal (Hijau)</option><option value="Low Pressure">Low Pressure</option><option value="Over Pressure">Over Pressure</option></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Pin & Segel</label><select id="pin" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Terpasang & Tersegel">Terpasang & Tersegel</option><option value="Putus / Hilang">Putus / Hilang</option></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Selang & Nozzle</label><select id="hose" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Bagus / Tidak Retak">Bagus</option><option value="Retak / Sumbat">Retak / Sumbat</option></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Kondisi Tabung</label><select id="body" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Bagus / Bersih">Bagus / Bersih</option><option value="Penyok / Berkarat">Penyok / Berkarat</option></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Hanger / Bracket</label><select id="hanger" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Kuat / Terpasang Baik">Kuat</option><option value="Longgar / Rusak">Longgar / Rusak</option></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Stiker Kartu Kendali</label><select id="tag" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Ada & Terisi">Ada & Terisi</option><option value="Tidak Ada / Kosong">Kosong</option></select></div>
+                                <div class="md:col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1">Aksesibilitas APAR</label><select id="access" class="w-full px-3 py-2 text-sm border rounded-lg"><option value="Bebas / Tidak Terhalang">Bebas / Tidak Terhalang</option><option value="Terhalang Barang / Material">Terhalang Barang</option></select></div>
+                            </div>
+                        </div>
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Status Kelayakan *</label><select id="status" class="w-full px-3 py-2 font-bold border rounded-lg bg-emerald-50 text-emerald-700 text-sm"><option value="LAYAK">LAYAK</option><option value="PERLU PERBAIKAN">PERLU PERBAIKAN</option></select></div>
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Catatan</label><textarea id="notes" rows="2" class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Dokumentasi Foto APAR</label>
+                            <input type="file" id="photoFile" accept="image/*" capture="environment" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700">
+                            <p class="text-[11px] text-amber-700 font-semibold mt-1">⚠️ Catatan: Foto dokumentasi APAR <b>hanya di-upload jika terdapat kondisi yang tidak sesuai</b> (Perlu Perbaikan / Kerusakan / Terhalang).</p>
+                        </div>
+
+                        <button type="submit" id="submitBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow text-sm transition">Kirim & Simpan</button>
+                    </form>
+                </div>
+
+                <!-- TABEL STATUS CEK APAR & CADANGAN (PENGINGAT KARYAWAN) -->
+                <div id="tabAparStatusList" class="hidden bg-white rounded-xl shadow-md p-6 border space-y-4">
+                    <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">Status Pengecekan APAR & Cadangan (Pengingat Karyawan)</h3>
+                            <p class="text-xs text-slate-500">Pilih periode Bulan & Tahun untuk melihat status 🟢 Sudah Dicek atau 🔴 Belum Dicek.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1.5 bg-slate-50 p-1 border rounded-lg">
+                                <select id="statusMonthSelect" onchange="loadKaryawanAparStatus()" class="px-2 py-1 text-xs font-semibold bg-white border rounded text-slate-700 outline-none">
+                                    <option value="01">Januari</option> <option value="02">Februari</option> <option value="03">Maret</option>
+                                    <option value="04">April</option> <option value="05">Mei</option> <option value="06">Juni</option>
+                                    <option value="07">Juli</option> <option value="08">Agustus</option> <option value="09">September</option>
+                                    <option value="10">Oktober</option> <option value="11">November</option> <option value="12">Desember</option>
+                                </select>
+                                <select id="statusYearSelect" onchange="loadKaryawanAparStatus()" class="px-2 py-1 text-xs font-semibold bg-white border rounded text-slate-700 outline-none">
+                                </select>
+                            </div>
+                            <button type="button" onclick="loadKaryawanAparStatus()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-xs font-semibold transition">Muat Ulang Status</button>
+                            <input type="text" id="searchKaryawanApar" oninput="filterKaryawanAparStatus()" placeholder="Cari Kode / Lokasi..." class="px-3 py-1.5 border rounded text-xs w-44">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-[600px]">
+                        <table class="w-full text-center text-xs border-collapse">
+                            <thead class="sticky top-0 bg-slate-800 text-white z-10">
+                                <tr>
+                                    <th class="p-2.5 border">No.</th>
+                                    <th class="p-2.5 border">Kode APAR</th>
+                                    <th class="p-2.5 border">Lokasi / Seksi Area</th>
+                                    <th class="p-2.5 border">Jenis Media & Kapasitas</th>
+                                    <th class="p-2.5 border">Status Pengingat Cek Periode Terpilih</th>
+                                </tr>
+                            </thead>
+                            <tbody id="karyawanAparStatusTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- LAPORAN & REKAP APAR (KHUSUS ADMIN) -->
+                <div id="tabAparReport" class="hidden space-y-6">
+                    <div class="bg-white p-4 rounded-xl shadow-md border space-y-3 no-print">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">Rekapitulasi Inspeksi APAR & Evaluasi</h3>
+                                <p class="text-[11px] text-slate-500">Pilih periode laporan Bulanan atau Semesteran (Retensi data otomatis: 3 Tahun).</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="loadReportData()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition">Muat Ulang</button>
+                                <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition">🖨️ Cetak PDF</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Periode Laporan</label>
+                                <select id="filterMode" onchange="toggleFilterMode()" class="w-full px-3 py-1.5 border rounded text-xs font-semibold bg-slate-50">
+                                    <option value="monthly">Bulanan</option>
+                                    <option value="semester">Semester</option>
+                                </select>
+                            </div>
+                            <div id="monthlyFilterContainer">
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Bulan & Tahun</label>
+                                <input type="month" id="filterMonth" onchange="loadReportData()" class="w-full px-3 py-1.5 border rounded text-xs font-semibold bg-slate-50">
+                            </div>
+                            <div id="semesterFilterContainer" class="hidden">
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Semester & Tahun</label>
+                                <div class="flex gap-2">
+                                    <select id="filterSemester" onchange="loadReportData()" class="w-full px-3 py-1.5 border rounded text-xs font-semibold bg-slate-50">
+                                        <option value="1">Semester 1 (Jan - Jun)</option>
+                                        <option value="2">Semester 2 (Jul - Des)</option>
+                                    </select>
+                                    <select id="filterSemesterYear" onchange="loadReportData()" class="w-28 px-3 py-1.5 border rounded text-xs font-semibold bg-slate-50"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="printArea" class="bg-white rounded-xl shadow-md p-8 border space-y-6">
+                        <div class="border-b-2 border-slate-800 pb-3 flex justify-between items-center gap-4">
+                            <div class="w-24 flex justify-start"><img src="PTKP0.png" class="h-12 object-contain" onerror="this.style.display='none'"></div>
+                            <div class="text-center flex-1 px-2">
+                                <h2 class="text-base font-bold text-slate-900 leading-tight uppercase">PT KERTAS PADALARANG</h2>
+                                <p class="text-[11px] font-bold text-slate-800 uppercase mt-0.5">DEPARTEMEN JAMINAN KEANDALAN DAN K3LH</p>
+                                <p class="text-[10px] text-slate-500 italic mt-0.5">Jl. Cihaliwung No.181, Kertamulya, Kec. Padalarang, Kabupaten Bandung Barat, Jawa Barat 40553</p>
+                            </div>
+                            <div class="w-24 flex justify-end"><img src="LOGO-K3-TRANSPARANT.png" class="w-12 h-12 object-contain" onerror="this.style.display='none'"></div>
+                        </div>
+
+                        <div class="text-center space-y-1">
+                            <h3 id="reportTitleHeader" class="text-base font-bold uppercase text-slate-900 tracking-wide">LAPORAN REKAPITULASI INSPEKSI APAR</h3>
+                            <p id="reportDate" class="text-[11px] text-slate-600 font-medium"></p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="bg-slate-50 border p-3 rounded-lg text-center"><p class="text-[11px] font-semibold">Total Unit Terinspeksi</p><p id="statTotal" class="text-2xl font-bold text-slate-800">0</p></div>
+                            <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-lg text-center"><p class="text-[11px] font-semibold text-emerald-800">Kondisi Layak</p><p id="statLayak" class="text-2xl font-bold text-emerald-600">0</p></div>
+                            <div class="bg-red-50 border border-red-200 p-3 rounded-lg text-center"><p class="text-[11px] font-semibold text-red-800">Perlu Perbaikan / Refill</p><p id="statPerbaikan" class="text-2xl font-bold text-red-600">0</p></div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-center text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-800 text-white">
+                                        <th class="p-2 border text-center">No.</th>
+                                        <th class="p-2 border text-center">Waktu Input</th>
+                                        <th class="p-2 border text-center">Tgl Cek</th>
+                                        <th class="p-2 border text-center">Kode APAR</th>
+                                        <th class="p-2 border text-center">Lokasi / Area</th>
+                                        <th class="p-2 border text-center">Aksesibilitas</th>
+                                        <th class="p-2 border text-center">Status</th>
+                                        <th class="p-2 border text-center">Catatan / Rekomendasi</th>
+                                        <th class="p-2 border text-center">Petugas</th>
+                                        <th class="p-2 border text-center">Dokumentasi Foto</th>
+                                        <th class="p-2 border text-center no-print">Aksi Evaluasi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody"><tr><td colspan="11" class="p-4 text-center text-slate-500">Memuat data rekap...</td></tr></tbody>
+                            </table>
+                        </div>
+
+                        <div class="bg-slate-50 border rounded-lg p-4 space-y-2 text-xs text-slate-800 leading-relaxed">
+                            <h4 class="font-bold uppercase tracking-wider text-slate-900 border-b pb-1">CATATAN & EVALUASI SEKSI K3LH:</h4>
+                            <div id="evalTextSingle" contenteditable="true" class="w-full bg-white border border-slate-300 p-2 rounded text-xs text-slate-800 leading-relaxed outline-none focus:ring-2 focus:ring-red-500 min-h-[80px]"></div>
+                        </div>
+
+                        <div class="pt-8 flex justify-end text-xs page-break-inside-avoid">
+                            <div class="text-center space-y-12 w-72">
+                                <div>
+                                    <p class="font-semibold text-slate-700">Padalarang, <span id="signDate"></span></p>
+                                    <p class="font-semibold text-slate-700">Hormat Kami,</p>
+                                    <p class="font-semibold text-slate-700">Departemen Jaminan Keandalan dan K3LH</p>
+                                </div>
+                                <div class="pt-4">
+                                    <p class="font-bold underline text-slate-900">Dimas Andhika Yunanto</p>
+                                    <p class="text-[10px] text-slate-500">Kepala Departemen</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODUL PROFIL, LABEL QR & PETA PENEMPATAN APAR (ADMIN) -->
+                <div id="tabAparQrCode" class="hidden space-y-6">
+                    <div class="flex gap-2 no-print bg-white p-3 rounded-xl shadow-sm border overflow-x-auto">
+                        <button onclick="switchQrSubTab('table')" id="btnQrSubTable" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition">📋 Tabel Master Profil APAR (1-150)</button>
+                        <button onclick="switchQrSubTab('backupTable')" id="btnQrSubBackupTable" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition">📋 Tabel Master APAR Cadangan</button>
+                        <button onclick="switchQrSubTab('cards')" id="btnQrSubCards" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition">🏷️ Kartu & Cetak QR Code</button>
+                    </div>
+
+                    <!-- SUBTAB 1: TABEL MASTER & PETA DENAH INTERAKTIF -->
+                    <div id="qrSubTableContainer" class="space-y-6">
+                        <!-- Kotak Atas: Tabel Master -->
+                        <div class="bg-white rounded-xl shadow-md p-6 border space-y-4">
+                            <div class="flex justify-between items-center border-b pb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-base">Tabel Master Profil & Spesifikasi APAR</h3>
+                                    <p class="text-xs text-slate-500">PT Kertas Padalarang — Perubahan pada tabel ini otomatis tersinkron ke Kartu Label QR & Peta Interaktif.</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <input type="text" id="searchAparProfile" oninput="filterAparTableProfile()" placeholder="Cari Kode / Lokasi..." class="px-3 py-1.5 border rounded text-xs w-52">
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto max-h-[500px]">
+                                <table class="w-full text-center text-xs border-collapse">
+                                    <thead class="sticky top-0 bg-slate-800 text-white z-10">
+                                        <tr>
+                                            <th class="p-2.5 border">No.</th>
+                                            <th class="p-2.5 border">Kode APAR</th>
+                                            <th class="p-2.5 border">Lokasi / Seksi Area</th>
+                                            <th class="p-2.5 border">Jenis Media</th>
+                                            <th class="p-2.5 border">Kapasitas (Kg)</th>
+                                            <th class="p-2.5 border">Jenis Tekanan</th>
+                                            <th class="p-2.5 border">Masa Kedaluwarsa</th>
+                                            <th class="p-2.5 border no-print">Aksi Edit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="aparProfileTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Kotak Bawah: Peta Denah Interaktif APAR -->
+                        <div class="bg-white rounded-xl shadow-md p-6 border space-y-4">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-base">🗺️ Peta Denah Interaktif & Pengaturan Titik APAR (Mode Admin)</h3>
+                                    <p class="text-xs text-slate-500">Klik marker pada peta untuk melihat spesifikasi/status, memilih, atau memindahkannya ke posisi baru.</p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <select id="mapItemSelect" onchange="focusMapItem(this.value)" class="px-3 py-1.5 border rounded text-xs font-semibold bg-slate-50">
+                                        <option value="">-- Pilih Cepat APAR --</option>
+                                    </select>
+                                    <button type="button" onclick="deleteActiveMarker()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">🗑️ Hapus Titik APAR</button>
+                                    <button type="button" onclick="saveMapPositions()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">💾 Simpan Posisi Peta</button>
+                                </div>
+                            </div>
+
+                            <div class="relative w-full overflow-auto border rounded-xl bg-slate-900 p-2 min-h-[600px] flex items-center justify-center">
+                                <div id="adminMapCanvas" class="relative inline-block w-full max-w-[1200px] cursor-crosshair">
+                                    <img src="Layout Peta APAR.png" alt="Denah PTKP" class="w-full h-auto object-contain block opacity-90 rounded" onerror="this.src='https://via.placeholder.com/1200x800?text=Denah+Layout+PT+Kertas+Padalarang'">
+                                    <!-- Titik Marker Admin -->
+                                    <div id="adminMarkersLayer" class="absolute inset-0"></div>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 italic">💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat kotak popup spesifikasi & status pengecekannya secara instan.</p>
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB KHUSUS: TABEL MASTER APAR CADANGAN -->
+                    <div id="qrSubBackupTableContainer" class="hidden space-y-6">
+                        <div class="bg-white rounded-xl shadow-md p-6 border space-y-4">
+                            <div class="flex justify-between items-center border-b pb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-base">Tabel Master Profil & Spesifikasi APAR Cadangan</h3>
+                                    <p class="text-xs text-slate-500">APAR Cadangan ini khusus tersinkron ke Kartu & Cetak QR Code (Tidak masuk ke peta denah layout).</p>
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="text" id="searchBackupAparProfile" oninput="filterBackupAparTableProfile()" placeholder="Cari Kode / Lokasi Cadangan..." class="px-3 py-1.5 border rounded text-xs w-52">
+                                    <button type="button" onclick="openAddBackupModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition">➕ Tambah APAR Cadangan</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto max-h-[500px]">
+                                <table class="w-full text-center text-xs border-collapse">
+                                    <thead class="sticky top-0 bg-slate-800 text-white z-10">
+                                        <tr>
+                                            <th class="p-2.5 border">No.</th>
+                                            <th class="p-2.5 border">Kode APAR Cadangan</th>
+                                            <th class="p-2.5 border">Lokasi / Penyimpanan</th>
+                                            <th class="p-2.5 border">Jenis Media</th>
+                                            <th class="p-2.5 border">Kapasitas (Kg)</th>
+                                            <th class="p-2.5 border">Jenis Tekanan</th>
+                                            <th class="p-2.5 border">Masa Kedaluwarsa</th>
+                                            <th class="p-2.5 border no-print">Aksi Edit / Hapus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="backupAparProfileTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB 2: KARTU QR (APAR UTAMA 1-150 & APAR CADANGAN) -->
+                    <div id="qrSubCardsContainer" class="hidden space-y-4">
+                        <div class="bg-white p-4 rounded-xl shadow-md border flex justify-between items-center no-print">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">Cetak Kartu Label QR Code APAR (Utama 1-150 & APAR Cadangan)</h3>
+                                <p class="text-[11px] text-slate-500">Data otomatis merujuk pada perubahan terbaru di Tabel Master Profil Utama & Cadangan.</p>
+                            </div>
+                            <button type="button" onclick="printQrCodes()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition">🖨️ Cetak Semua QR Code</button>
+                        </div>
+
+                        <div id="printAreaQr" class="bg-white rounded-xl shadow-md p-6 border">
+                            <div class="text-center mb-6">
+                                <h2 class="text-lg font-bold text-slate-900 uppercase">LABEL QR CODE INSPEKSI APAR & CADANGAN</h2>
+                                <p class="text-xs text-slate-600">PT Kertas Padalarang — Departemen Jaminan Keandalan & K3LH</p>
+                            </div>
+                            <div id="qrGridContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- MODUL 2: TEMUAN & TINDAK LANJUT K3 -->
+            <div id="modulTemuan" class="hidden space-y-6">
+                <div class="flex gap-2 no-print mb-4 overflow-x-auto" id="temuanTabNavContainer">
+                    <button onclick="switchTemuanTab('form')" id="btnTemuanForm" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Form Temuan K3</button>
+                    <button onclick="switchTemuanTab('tl')" id="btnTemuanTl" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Form Tindak Lanjut</button>
+                    <button onclick="switchTemuanTab('report')" id="btnTemuanReport" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Dashboard & Laporan Terpadu</button>
+                </div>
+
+                <div id="tabTemuanForm" class="bg-white rounded-xl shadow-md p-6 border space-y-4">
+                    <h2 class="text-lg font-bold text-slate-800 border-b pb-2">Formulir Laporan Temuan Bahaya & Kondisi Tidak Aman</h2>
+                    <form onsubmit="handleTemuanSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nomor ID Temuan (Otomatis)</label><input type="text" id="tId" readonly class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-100 font-bold text-red-700"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pelapor *</label><input type="text" id="tNama" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Register Pelapor *</label><input type="text" id="tReg" required placeholder="NIK / NIP" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal & Waktu Temuan (Sistem Otomatis) *</label>
+                                <input type="datetime-local" id="tWaktu" disabled required class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-100 font-bold text-slate-700">
+                            </div>
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi Temuan *</label><input type="text" id="tLokasi" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Kategori Bahaya *</label>
+                                <select id="tKategori" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                    <option value="Tindakan Tidak Aman (Unsafe Action)">Tindakan Tidak Aman (Unsafe Action)</option>
+                                    <option value="Kondisi Tidak Aman (Unsafe Condition)">Kondisi Tidak Aman (Unsafe Condition)</option>
+                                    <option value="Near Miss (Hampir Celaka)">Near Miss</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Status Penanganan Awal *</label>
+                                <select id="tStatus" class="w-full px-3 py-2 border rounded-lg text-sm font-bold text-amber-700 bg-amber-50">
+                                    <option value="Pembuatan Work Order ke Departemen Teknik">1. Pembuatan Work Order ke Departemen Teknik</option>
+                                    <option value="Himbauan dan Teguran Secara Langsung">2. Himbauan dan Teguran Secara Langsung</option>
+                                    <option value="Lainnya">3. Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Deskripsi Detail Temuan *</label>
+                            <textarea id="tDeskripsi" rows="3" required placeholder="Uraikan temuan bahaya secara detail..." class="w-full px-3 py-2 border rounded-lg text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Upload Foto Dokumentasi (BEFORE) *</label>
+                            <input type="file" id="tFoto" accept="image/*" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700">
+                        </div>
+                        <button type="submit" id="submitTemuanBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg text-sm transition">Kirim Laporan Temuan K3</button>
+                    </form>
+                </div>
+
+                <div id="tabTemuanTl" class="bg-white rounded-xl shadow-md p-6 border space-y-4 hidden">
+                    <h2 class="text-lg font-bold text-slate-800 border-b pb-2">Formulir Tindak Lanjut Temuan K3</h2>
+                    <form onsubmit="handleTlSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Pilih ID Temuan yang Ingin Ditindaklanjuti *</label>
+                            <select id="tlTemuanSelect" required onchange="fillTemuanDetail()" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 font-medium">
+                                <option value="">-- Memuat daftar temuan --</option>
+                            </select>
+                        </div>
+                        <div id="selectedTemuanPreview" class="p-3 bg-slate-50 rounded-lg text-xs text-slate-600 border hidden"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama Petugas / PIC Tindak Lanjut *</label><input type="text" id="tlNama" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nomor Register / NIK Petugas *</label><input type="text" id="tlReg" required placeholder="NIK / NIP" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Uraian Progres / Tindakan Perbaikan yang Dilakukan *</label>
+                            <textarea id="tlProgres" rows="3" required placeholder="Jelaskan tindakan perbaikan yang telah dikerjakan..." class="w-full px-3 py-2 border rounded-lg text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Status Akhir Penanganan *</label>
+                            <select id="tlStatus" class="w-full px-3 py-2 border rounded-lg text-sm font-bold text-emerald-700 bg-emerald-50">
+                                <option value="Sudah Selesai">Sudah Selesai</option>
+                                <option value="Belum Selesai / Proses">Masih Dalam Proses</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Upload Foto Bukti Perbaikan (AFTER)</label>
+                            <input type="file" id="tlFoto" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
+                        </div>
+                        <button type="submit" id="submitTlBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">Simpan & Kirim Tindak Lanjut</button>
+                    </form>
+                </div>
+
+                <div id="tabTemuanReport" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white border p-4 rounded-xl shadow-sm text-center">
+                            <p class="text-xs font-semibold text-slate-500">Total Temuan</p>
+                            <p id="statTotalTemuan" class="text-3xl font-bold text-slate-800">0</p>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-sm text-center">
+                            <p class="text-xs font-semibold text-emerald-700">Sudah Selesai</p>
+                            <p id="statSelesaiTemuan" class="text-3xl font-bold text-emerald-600">0</p>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-sm text-center">
+                            <p class="text-xs font-semibold text-amber-700">Belum Selesai / Proses</p>
+                            <p id="statProsesTemuan" class="text-3xl font-bold text-amber-600">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-md border space-y-2">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Grafik Rekapitulasi Tren Temuan K3 (Per Bulan)</h3>
+                        <div id="chartTemuanContainer" class="flex items-end gap-3 h-32 pt-6 pb-2 px-2 border-b overflow-x-auto">
+                            <span class="text-xs text-slate-400 italic">Memuat grafik...</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center no-print bg-white p-4 rounded-xl shadow-md border">
+                        <h3 class="font-bold text-slate-800 text-sm">Laporan Terpadu Temuan & Tindak Lanjut K3</h3>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="loadTemuanData()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition">Muat Ulang</button>
+                            <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition">🖨️ Cetak PDF</button>
+                        </div>
+                    </div>
+
+                    <div id="printAreaTemuan" class="bg-white rounded-xl shadow-md p-8 border space-y-6">
+                        <div class="border-b-2 border-slate-800 pb-3 flex justify-between items-center gap-4">
+                            <div class="w-24"><img src="PTKP0.png" class="h-12 object-contain" onerror="this.style.display='none'"></div>
+                            <div class="text-center flex-1 px-2">
+                                <h2 class="text-base font-bold text-slate-900 leading-tight">PT KERTAS PADALARANG</h2>
+                                <p class="text-[11px] font-bold text-slate-900 uppercase">DEPARTEMEN JAMINAN KEANDALAN DAN K3LH</p>
+                            </div>
+                            <div class="w-24 flex justify-end"><img src="LOGO-K3-TRANSPARANT.png" class="w-12 h-12 object-contain" onerror="this.style.display='none'"></div>
+                        </div>
+                        <div class="text-center space-y-1"><h3 class="text-base font-bold uppercase text-slate-900">LAPORAN TERPADU TEMUAN & TINDAK LANJUT K3</h3></div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-center text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-800 text-white">
+                                        <th class="p-2 border text-center">ID / Waktu</th>
+                                        <th class="p-2 border text-center">Lokasi & Pelapor</th>
+                                        <th class="p-2 border text-center">Uraian Temuan & Status Awal</th>
+                                        <th class="p-2 border text-center">Tindak Lanjut & PIC</th>
+                                        <th class="p-2 border text-center">Dokumentasi (Before / After)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="temuanTableBody"><tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat...</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="pt-8 flex justify-end text-xs page-break-inside-avoid">
+                            <div class="text-center space-y-12 w-72"><div><p class="font-semibold text-slate-700">Hormat Kami,</p><p class="font-semibold text-slate-700">Departemen Jaminan Keandalan dan K3LH</p></div><div class="pt-4"><p class="font-bold underline text-slate-900">Dimas Andhika Yunanto</p><p class="text-[10px] text-slate-500">Kepala Departemen</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODUL 3: STOK & PERMINTAAN APD -->
+            <div id="modulApd" class="hidden space-y-6">
+                <div class="bg-white rounded-xl shadow-md p-6 border space-y-4" id="adminApdStockSection">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h2 class="text-lg font-bold text-slate-800">Manajemen & Dashboard Stok APD PT Kertas Padalarang</h2>
+                        <button type="button" onclick="saveApdStockChanges()" id="saveStockBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Simpan Perubahan Stok</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="apdStockGrid"></div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 border" id="apdFormContainer">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Formulir Pengajuan / Permintaan APD</h2>
+                    <form onsubmit="handleApdSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Permintaan *</label><input type="date" id="aTgl" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pemohon *</label><input type="text" id="aNama" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Register Pemohon *</label><input type="text" id="aReg" required placeholder="NIK / NIP" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Departemen / Seksi *</label><input type="text" id="aDept" required placeholder="Misal: Produksi / K3LH" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Jenis APD *</label><select id="aJenis" class="w-full px-3 py-2 border rounded-lg text-sm"><option value="Safety Helmet">Safety Helmet</option><option value="Safety Glasses">Safety Glasses</option><option value="Safety Shoes 4 inch">Safety Shoes 4 inch</option><option value="Sarung Tangan Kain">Sarung Tangan Kain</option><option value="Masker Medis">Masker Medis</option><option value="Seragam Kerja / Wearpack">Seragam Kerja / Wearpack</option></select></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ukuran / Size</label><input type="text" id="aUkuran" placeholder="Misal: 42, L, XL" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah (Pcs) *</label><input type="number" id="aJumlah" min="1" value="1" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Merk APD</label><input type="text" id="aMerk" placeholder="Misal: King's" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Foto APD Lama</label><input type="file" id="aFoto" accept="image/*" class="w-full text-xs text-slate-500 file:py-1 file:px-2 file:rounded file:bg-blue-50 file:text-blue-700"></div>
+                        </div>
+                        <button type="submit" id="submitApdBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">Ajukan Permintaan APD</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- MODUL 4: PROFIL -->
+            <div id="modulProfile" class="hidden space-y-6">
+                <div class="bg-white rounded-xl shadow-md p-6 border max-w-2xl mx-auto space-y-4">
+                    <h2 class="text-lg font-bold text-slate-800 border-b pb-2">Pengaturan Akun & Profil</h2>
+                    <form onsubmit="handleProfileUpdate(event)" class="space-y-4">
+                        <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap / Profil</label><input type="text" id="profileName" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-semibold text-slate-600 mb-1">Username</label><input type="text" id="profileUser" disabled class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-100"></div>
+                        <div><label class="block text-xs font-semibold text-slate-600 mb-1">Hak Akses</label><input type="text" id="profileRole" disabled class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-100 font-bold uppercase"></div>
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm transition">Simpan Perubahan</button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL KOTAK SPESIFIKASI & STATUS APAR -->
+    <div id="aparDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 no-print">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4 relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeAparDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
+            <div class="flex items-center gap-3 border-b pb-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-base" id="modalAparIdNum">01</div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900" id="modalAparCodeTitle">APAR-001</h3>
+                    <p class="text-xs font-semibold text-red-700" id="modalAparLocationText">Lokasi Area Pabrik</p>
+                </div>
+            </div>
+            
+            <div class="space-y-2.5 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border">
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Jenis Media:</span> <span class="font-bold text-slate-900" id="modalAparTypeText">Dry Chemical Powder</span></div>
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kapasitas Tabung:</span> <span class="font-bold text-slate-900" id="modalAparCapText">6 Kg</span></div>
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Jenis Tekanan:</span> <span class="font-bold text-slate-900" id="modalAparPressureType">Manometer</span></div>
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Masa Kedaluwarsa:</span> <span class="font-bold text-red-600" id="modalAparExpDate">Desember 2028</span></div>
+                <div class="flex justify-between pt-0.5"><span class="text-slate-500 font-medium">Status Pengecekan Bulan Ini:</span> <span id="modalAparStatusBadge" class="font-bold">Memuat...</span></div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="closeAparDetailModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT EVALUASI APAR (ADMIN) -->
+    <div id="editAparModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 no-print">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-base font-bold text-slate-900 border-b pb-2">Evaluasi & Edit Inspeksi APAR</h3>
+            <form onsubmit="handleEditAparSubmit(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="editRowIndex">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Kode APAR</label>
+                    <input type="text" id="editCode" disabled class="w-full px-3 py-2 border rounded bg-slate-100 font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Status Kelayakan Evaluasi</label>
+                        <select id="editStatus" class="w-full px-3 py-2 border rounded font-bold text-emerald-700 bg-emerald-50">
+                            <option value="LAYAK">LAYAK</option>
+                            <option value="PERLU PERBAIKAN">PERLU PERBAIKAN</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Aksesibilitas</label>
+                        <select id="editAccess" class="w-full px-3 py-2 border rounded">
+                            <option value="Bebas / Tidak Terhalang">Bebas / Tidak Terhalang</option>
+                            <option value="Terhalang Barang / Material">Terhalang Barang</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Rekomendasi Perbaikan / Catatan Parameter Fisik</label>
+                    <select id="editRekomendasi" class="w-full px-3 py-2 border rounded text-xs font-semibold bg-slate-50 text-slate-800">
+                        <option value="Perbaikan / Refill Tekanan (Pressure Gauge)">Perbaikan / Refill Tekanan (Pressure Gauge)</option>
+                        <option value="Penggantian Pin & Segel APAR">Penggantian Pin & Segel APAR</option>
+                        <option value="Perbaikan Selang & Nozzle (Retak/Sumbat)">Perbaikan Selang & Nozzle (Retak/Sumbat)</option>
+                        <option value="Perbaikan / Pembersihan Kondisi Tabung (Berkarat/Penyok)">Perbaikan / Pembersihan Kondisi Tabung (Berkarat/Penyok)</option>
+                        <option value="Perbaikan / Pengencangan Hanger & Bracket">Perbaikan / Pengencangan Hanger & Bracket</option>
+                        <option value="Penggantian / Pengisian Stiker Kartu Kendali">Penggantian / Pengisian Stiker Kartu Kendali</option>
+                        <option value="Penataan Ulang Aksesibilitas (Terhalang Material)">Penataan Ulang Aksesibilitas (Terhalang Material)</option>
+                        <option value="Lainnya / Sesuai Kondisi Lapangan">Lainnya / Sesuai Kondisi Lapangan</option>
+                    </select>
+                </div>
+
+                <div class="border-t pt-3 space-y-2">
+                    <label class="block font-semibold text-slate-700">Dokumentasi Foto APAR (Tambah / Retake)</label>
+                    <div id="currentPhotoPreviewContainer" class="flex items-center gap-3"></div>
+                    <div>
+                        <input type="file" id="editPhotoFile" accept="image/*" capture="environment" class="w-full text-xs text-slate-500 file:py-1 file:px-2 file:rounded file:bg-amber-50 file:text-amber-700 border rounded p-1">
+                        <p class="text-[10px] text-slate-500 mt-1">Pilih file atau ambil foto baru untuk melengkapi / mengganti dokumentasi.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="submitEditBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded transition">Simpan Evaluasi</button>
+                    <button type="button" onclick="closeEditModal()" class="bg-slate-300 hover:bg-slate-400 text-slate-700 font-bold py-2 px-4 rounded transition">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT SPESIFIKASI & PROFIL APAR (ADMIN) -->
+    <div id="editQrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 no-print">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4">
+            <h3 class="text-base font-bold text-slate-900 border-b pb-2">Edit Master Spesifikasi APAR</h3>
+            <input type="hidden" id="editQrIndex">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Kode / ID APAR</label>
+                    <input type="text" id="modalQrCodeText" class="w-full px-3 py-2 border rounded font-bold text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Lokasi / Seksi Area *</label>
+                    <input type="text" id="modalQrLocText" class="w-full px-3 py-2 border rounded text-slate-800" placeholder="Misal: Area Produksi MK 1">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Jenis Media APAR *</label>
+                        <select id="modalQrTypeText" class="w-full px-3 py-2 border rounded bg-white font-medium">
+                            <option value="Dry Chemical Powder">Dry Chemical Powder</option>
+                            <option value="CO2">CO2</option>
+                            <option value="Foam AFFF">Foam AFFF</option>
+                            <option value="Clean Agent">Clean Agent</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Kapasitas (Kg) *</label>
+                        <input type="number" id="modalQrCapText" class="w-full px-3 py-2 border rounded text-slate-800" placeholder="Misal: 6">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Jenis Tekanan APAR *</label>
+                        <select id="modalQrPressureText" class="w-full px-3 py-2 border rounded bg-white font-medium text-slate-800">
+                            <option value="Manometer">Manometer</option>
+                            <option value="Catridge">Catridge</option>
+                            <option value="High Pressure">High Pressure</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Masa Kedaluwarsa *</label>
+                        <input type="text" id="modalQrExpText" class="w-full px-3 py-2 border rounded text-slate-800" placeholder="Contoh: Des 2028">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="saveQrEdit()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded transition">Simpan & Sinkronkan</button>
+                    <button type="button" onclick="closeQrEditModal()" class="bg-slate-300 hover:bg-slate-400 text-slate-700 font-bold py-2 px-4 rounded transition">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH / EDIT APAR CADANGAN (ADMIN) -->
+    <div id="editBackupModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 no-print">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4">
+            <h3 id="backupModalTitle" class="text-base font-bold text-slate-900 border-b pb-2">Tambah / Edit APAR Cadangan</h3>
+            <input type="hidden" id="editBackupIndex" value="-1">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Kode / ID APAR Cadangan *</label>
+                    <input type="text" id="modalBackupCodeText" class="w-full px-3 py-2 border rounded font-bold text-slate-800" placeholder="Contoh: CAD-001">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Lokasi / Gudang Penyimpanan *</label>
+                    <input type="text" id="modalBackupLocText" class="w-full px-3 py-2 border rounded text-slate-800" placeholder="Misal: Gudang K3LH / Cadangan Utama">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Jenis Media *</label>
+                        <select id="modalBackupTypeText" class="w-full px-3 py-2 border rounded bg-white font-medium">
+                            <option value="Dry Chemical Powder">Dry Chemical Powder</option>
+                            <option value="CO2">CO2</option>
+                            <option value="Foam AFFF">Foam AFFF</option>
+                            <option value="Clean Agent">Clean Agent</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Kapasitas (Kg) *</label>
+                        <input type="number" id="modalBackupCapText" class="w-full px-3 py-2 border rounded text-slate-800" placeholder="Misal: 6">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Jenis Tekanan *</label>
+                        <select id="modalBackupPressureText" class="w-full px-3 py-2 border rounded bg-white font-medium text-slate-800">
+                            <option value="Manometer">Manometer</option>
+                            <option value="Catridge">Catridge</option>
+                            <option value="High Pressure">High Pressure</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Masa Kedaluwarsa *</label>
+                        <input type="text" id="modalBackupExpText" class="w-full px-3 py-2 border rounded text-slate-800" placeholder="Contoh: Des 2029">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="saveBackupAparData()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded transition">Simpan APAR Cadangan</button>
+                    <button type="button" onclick="closeBackupModal()" class="bg-slate-300 hover:bg-slate-400 text-slate-700 font-bold py-2 px-4 rounded transition">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LENGKAP -->
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJuG4J0Ij_EWqHS0jcMndkcicFuOrc1XR_2n4KF-HlEUhF9pT-Si52gY3ZjqwYIYMpag/exec";
+        let currentUser = JSON.parse(localStorage.getItem('k3_current_user')) || null;
+        let globalTemuanList = [];
+        let globalAparList = [];
+        let html5QrCode = null;
+        let qrList = [];
+        let backupQrList = [];
+        let activeMapEditIndex = null;
+
+        let apdCatalog = JSON.parse(localStorage.getItem('k3_apd_stock')) || [
+            { name: "Safety Helmet", stock: 45, icon: "⛑️" }, { name: "Safety Glasses", stock: 60, icon: "👓" },
+            { name: "Safety Shoes 4 inch", stock: 15, icon: "🥾" }, { name: "Sarung Tangan Kain", stock: 150, icon: "🧤" },
+            { name: "Masker Medis", stock: 500, icon: "😷" }, { name: "Seragam Kerja / Wearpack", stock: 85, icon: "👕" }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setAutomaticDates();
+            generateTemuanId();
+            checkAuthSession();
+            renderApdStock();
+            initFilterDefaults();
+            initQrListStorage();
+            initBackupQrListStorage();
+            initStatusYearOptions();
+            renderPublicMapMarkers();
+        });
+
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        function initStatusYearOptions() {
+            const yearSelect = document.getElementById('statusYearSelect');
+            if(!yearSelect) return;
+            const currentYear = new Date().getFullYear();
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            
+            document.getElementById('statusMonthSelect').value = currentMonth;
+            yearSelect.innerHTML = "";
+            for(let y = currentYear; y >= currentYear - 3; y--) {
+                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+            }
+        }
+
+        function initQrListStorage() {
+            let saved = localStorage.getItem('k3_qr_list_1_150_v11');
+            if(saved) {
+                qrList = JSON.parse(saved);
+            } else {
+                qrList = [];
+                const pressureOptions = ["Manometer", "Catridge", "High Pressure"];
+                const expYears = ["Desember 2027", "Desember 2028", "Oktober 2028", "November 2029", "Januari 2028"];
+                for(let i = 1; i <= 150; i++) {
+                    let defaultX = 10 + ((i - 1) % 15) * 5.5;
+                    let defaultY = 15 + Math.floor((i - 1) / 15) * 8.0;
+                    qrList.push({
+                        id: i,
+                        code: `APAR-${String(i).padStart(3, '0')}`,
+                        location: `Area Pabrik / Gedung #${i}`,
+                        type: i % 2 === 0 ? "CO2" : "Dry Chemical Powder",
+                        capacity: i % 3 === 0 ? "9" : "6",
+                        pressureType: pressureOptions[i % pressureOptions.length],
+                        expDate: expYears[i % expYears.length],
+                        x: parseFloat(defaultX.toFixed(1)),
+                        y: parseFloat(defaultY.toFixed(1))
+                    });
+                }
+                localStorage.setItem('k3_qr_list_1_150_v11', JSON.stringify(qrList));
+            }
+        }
+
+        function initBackupQrListStorage() {
+            let saved = localStorage.getItem('k3_backup_qr_list_v1');
+            if(saved) {
+                backupQrList = JSON.parse(saved);
+            } else {
+                backupQrList = [
+                    { id: 1, code: "CAD-001", location: "Gudang K3LH Utama", type: "Dry Chemical Powder", capacity: "6", pressureType: "Manometer", expDate: "Desember 2029" },
+                    { id: 2, code: "CAD-002", location: "Gudang Logistik Cadangan", type: "CO2", capacity: "9", pressureType: "Manometer", expDate: "Oktober 2029" }
+                ];
+                localStorage.setItem('k3_backup_qr_list_v1', JSON.stringify(backupQrList));
+            }
+        }
+
+        function autoFillAparByCode(scannedCode) {
+            if(!scannedCode) return;
+            let found = qrList.find(q => q.code.toLowerCase() === scannedCode.trim().toLowerCase());
+            if(!found) {
+                found = backupQrList.find(q => q.code.toLowerCase() === scannedCode.trim().toLowerCase());
+            }
+            if(found) {
+                if(document.getElementById('location')) document.getElementById('location').value = found.location;
+                if(document.getElementById('type')) document.getElementById('type').value = found.type;
+                if(document.getElementById('capacity')) document.getElementById('capacity').value = found.capacity;
+                if(document.getElementById('pressureTypeInput')) document.getElementById('pressureTypeInput').value = found.pressureType || 'Manometer';
+                if(document.getElementById('expDateInput')) document.getElementById('expDateInput').value = found.expDate || 'Desember 2028';
+            }
+        }
+
+        function initFilterDefaults() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const filterMonthInput = document.getElementById('filterMonth');
+            if(filterMonthInput) filterMonthInput.value = `${year}-${month}`;
+
+            const semSelectYear = document.getElementById('filterSemesterYear');
+            if(semSelectYear) {
+                semSelectYear.innerHTML = "";
+                for(let y = year; y >= year - 3; y--) {
+                    semSelectYear.innerHTML += `<option value="${y}">${y}</option>`;
+                }
+            }
+        }
+
+        function toggleFilterMode() {
+            const mode = document.getElementById('filterMode').value;
+            if(mode === 'monthly') {
+                document.getElementById('monthlyFilterContainer').classList.remove('hidden');
+                document.getElementById('semesterFilterContainer').classList.add('hidden');
+            } else {
+                document.getElementById('monthlyFilterContainer').classList.add('hidden');
+                document.getElementById('semesterFilterContainer').classList.remove('hidden');
+            }
+            loadReportData();
+        }
+
+        function setAutomaticDates() {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const localIsoStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0,16);
+
+            if(document.getElementById('inspectionDate')) document.getElementById('inspectionDate').value = todayStr;
+            if(document.getElementById('tWaktu')) document.getElementById('tWaktu').value = localIsoStr;
+            if(document.getElementById('aTgl')) document.getElementById('aTgl').value = todayStr;
+
+            const monthYearFormatted = getMonthYearIndo(now);
+            const evalBox = document.getElementById('evalTextSingle');
+            if(evalBox && !evalBox.innerText.trim()) {
+                evalBox.innerText = `Berdasarkan hasil resume pelaksanaan pemeriksaan Alat Pemadam Api Ringan (APAR) pada bulan ${monthYearFormatted}, Departemen Jaminan Keandalan dan K3LH melalui Seksi K3LH telah melakukan pengawasan serta pemantauan menyeluruh terhadap seluruh fasilitas tanggap darurat di lingkungan operasional PT Kertas Padalarang.`;
+            }
+        }
+
+        function generateTemuanId() {
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+            const randomNum = Math.floor(100 + Math.random() * 900);
+            const idField = document.getElementById('tId');
+            if(idField) idField.value = `TMN-${dateStr}-${randomNum}`;
+        }
+
+        function formatDateIndo(dateObj) {
+            const bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            return `${dateObj.getDate()} ${bulan[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+
+        function getMonthYearIndo(dateObj) {
+            const bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            return `${bulan[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+
+        function formatDateTimePretty(str) {
+            if (!str) return '-';
+            const d = new Date(str);
+            if (isNaN(d.getTime())) return str;
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} - ${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')} WIB`;
+        }
+
+        function formatDatePretty(str) {
+            if (!str) return '-';
+            const d = new Date(str);
+            if (isNaN(d.getTime())) return str;
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        }
+
+        function setupNavigation() {
+            const navContainer = document.getElementById('navButtonsContainer');
+            const subTitle = document.getElementById('headerRoleSubtitle');
+            navContainer.innerHTML = "";
+
+            if (currentUser.role === 'admin') {
+                subTitle.textContent = "Panel Administrator K3LH";
+                navContainer.innerHTML = `
+                    <button onclick="switchModule('apar')" id="navApar" class="bg-red-900 hover:bg-red-950 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow whitespace-nowrap transition">Rekap APAR</button>
+                    <button onclick="switchModule('temuan')" id="navTemuan" class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Rekap Temuan & TL</button>
+                    <button onclick="switchModule('apd')" id="navApd" class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Stok APD</button>
+                    <button onclick="switchModule('profile')" id="navProfile" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 whitespace-nowrap transition">👤 Profil</button>
+                    <button onclick="handleLogout()" class="bg-red-950 hover:bg-black text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 whitespace-nowrap transition">🚪 Keluar</button>
+                `;
+
+                document.getElementById('aparTabNav').style.display = 'flex';
+                document.getElementById('btnAparForm').style.display = 'none';
+                document.getElementById('btnAparStatusList').style.display = 'none';
+                document.getElementById('btnAparReport').style.display = 'inline-block';
+                document.getElementById('btnAparQr').style.display = 'inline-block';
+
+                document.getElementById('temuanTabNavContainer').style.display = 'none';
+                document.getElementById('apdFormContainer').style.display = 'none';
+                document.getElementById('adminApdStockSection').style.display = 'block';
+                document.getElementById('saveStockBtn').classList.remove('hidden');
+
+                switchModule('apar');
+                switchAparTab('report');
+            } else {
+                subTitle.textContent = "PT Kertas Padalarang";
+                navContainer.innerHTML = `
+                    <button onclick="switchModule('apar')" id="navApar" class="bg-red-900 hover:bg-red-950 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow whitespace-nowrap transition">Inspeksi APAR</button>
+                    <button onclick="switchModule('temuan')" id="navTemuan" class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Temuan & Tindak Lanjut K3</button>
+                    <button onclick="switchModule('apd')" id="navApd" class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition">Stok & APD</button>
+                    <button onclick="switchModule('profile')" id="navProfile" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 whitespace-nowrap transition">👤 <span id="userNameDisplay">Profil</span></button>
+                    <button onclick="handleLogout()" class="bg-red-950 hover:bg-black text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 whitespace-nowrap transition">🚪 Keluar</button>
+                `;
+
+                document.getElementById('aparTabNav').style.display = 'flex';
+                document.getElementById('btnAparForm').style.display = 'inline-block';
+                document.getElementById('btnAparStatusList').style.display = 'inline-block';
+                document.getElementById('btnAparReport').style.display = 'none';
+                document.getElementById('btnAparQr').style.display = 'none';
+
+                document.getElementById('temuanTabNavContainer').style.display = 'flex';
+                document.getElementById('btnTemuanReport').style.display = 'none';
+                document.getElementById('apdFormContainer').style.display = 'block';
+                document.getElementById('adminApdStockSection').style.display = 'none';
+
+                switchModule('apar');
+                switchAparTab('form');
+            }
+        }
+
+        function checkAuthSession() {
+            if (currentUser) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                if(document.getElementById('userNameDisplay')) document.getElementById('userNameDisplay').textContent = currentUser.name;
+                document.getElementById('profileName').value = currentUser.name;
+                document.getElementById('profileUser').value = currentUser.username;
+                document.getElementById('profileRole').value = currentUser.role;
+                setupNavigation();
+            } else {
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('appContainer').classList.add('hidden');
+                renderPublicMapMarkers();
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value.trim();
+            let role = (u.toLowerCase() === 'admin' && p === 'admin123') ? 'admin' : 'peserta';
+            currentUser = { username: u, name: role === 'admin' ? 'Dimas Andhika (Admin)' : u, role: role };
+            localStorage.setItem('k3_current_user', JSON.stringify(currentUser));
+            closeLoginModal();
+            checkAuthSession();
+            alert("Login Berhasil!");
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('k3_current_user');
+            currentUser = null;
+            checkAuthSession();
+        }
+
+        function switchModule(modul) {
+            ['modulApar', 'modulTemuan', 'modulApd', 'modulProfile'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            if (modul === 'apar') { 
+                document.getElementById('modulApar').classList.remove('hidden'); 
+                if(currentUser.role === 'admin') switchAparTab('report');
+                else setAutomaticDates();
+            } else if (modul === 'temuan') { 
+                document.getElementById('modulTemuan').classList.remove('hidden'); 
+                if(currentUser.role === 'admin') switchTemuanTab('report');
+                else { switchTemuanTab('form'); loadTemuanOptionsForTl(); }
+            } else if (modul === 'apd') { 
+                document.getElementById('modulApd').classList.remove('hidden'); 
+            } else if (modul === 'profile') { 
+                document.getElementById('modulProfile').classList.remove('hidden'); 
+            }
+        }
+
+        function switchAparTab(tab) {
+            document.getElementById('tabAparForm').classList.add('hidden');
+            document.getElementById('tabAparStatusList').classList.add('hidden');
+            document.getElementById('tabAparReport').classList.add('hidden');
+            document.getElementById('tabAparQrCode').classList.add('hidden');
+
+            const btnForm = document.getElementById('btnAparForm');
+            const btnStatus = document.getElementById('btnAparStatusList');
+            const btnReport = document.getElementById('btnAparReport');
+            const btnQr = document.getElementById('btnAparQr');
+
+            [btnForm, btnStatus, btnReport, btnQr].forEach(btn => {
+                if(btn) btn.className = "bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+            });
+
+            if (tab === 'form') {
+                if(currentUser.role === 'admin') return;
+                document.getElementById('tabAparForm').classList.remove('hidden');
+                if(btnForm) btnForm.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+            } else if(tab === 'statusList') {
+                if(currentUser.role === 'admin') return;
+                document.getElementById('tabAparStatusList').classList.remove('hidden');
+                if(btnStatus) btnStatus.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                loadKaryawanAparStatus();
+            } else if(tab === 'report') {
+                if(currentUser.role === 'peserta') return;
+                document.getElementById('tabAparReport').classList.remove('hidden');
+                if(btnReport) btnReport.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                loadReportData();
+            } else if(tab === 'qrcode') {
+                if(currentUser.role === 'peserta') return;
+                document.getElementById('tabAparQrCode').classList.remove('hidden');
+                if(btnQr) btnQr.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                switchQrSubTab('table');
+            }
+        }
+
+        function switchQrSubTab(subTab) {
+            const btnTable = document.getElementById('btnQrSubTable');
+            const btnBackupTable = document.getElementById('btnQrSubBackupTable');
+            const btnCards = document.getElementById('btnQrSubCards');
+            
+            const contTable = document.getElementById('qrSubTableContainer');
+            const contBackupTable = document.getElementById('qrSubBackupTableContainer');
+            const contCards = document.getElementById('qrSubCardsContainer');
+
+            [btnTable, btnBackupTable, btnCards].forEach(b => {
+                if(b) b.className = "bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+            });
+            [contTable, contBackupTable, contCards].forEach(c => {
+                if(c) c.classList.add('hidden');
+            });
+
+            if(subTab === 'table') {
+                if(btnTable) btnTable.className = "bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+                if(contTable) contTable.classList.remove('hidden');
+                renderAparProfileTable(qrList);
+                renderAdminMapMarkers();
+            } else if(subTab === 'backupTable') {
+                if(btnBackupTable) btnBackupTable.className = "bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+                if(contBackupTable) contBackupTable.classList.remove('hidden');
+                renderBackupAparProfileTable(backupQrList);
+            } else if(subTab === 'cards') {
+                if(btnCards) btnCards.className = "bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+                if(contCards) contCards.classList.remove('hidden');
+                renderAllQrCodes();
+            }
+        }
+
+        async function loadKaryawanAparStatus() {
+            const tbody = document.getElementById('karyawanAparStatusTableBody');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat status pengecekan APAR & Cadangan...</td></tr>`;
+
+            const mVal = document.getElementById('statusMonthSelect').value;
+            const yVal = document.getElementById('statusYearSelect').value;
+            const targetYearMonth = `${yVal}-${mVal}`;
+
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=apar");
+                const result = await res.json();
+                let inspectedCodesThisMonth = new Set();
+
+                if (result.records) {
+                    result.records.forEach(r => {
+                        let checkDateStr = r[2] || r[1];
+                        if (checkDateStr && checkDateStr.startsWith(targetYearMonth)) {
+                            inspectedCodesThisMonth.add(r[3].trim().toLowerCase());
+                        }
+                    });
+                }
+
+                // 🌟 Menggabungkan APAR Utama (1-150) dan APAR Cadangan
+                let combinedCheckList = [];
+                qrList.forEach(item => combinedCheckList.push({ ...item, isBackup: false }));
+                backupQrList.forEach((item, index) => {
+                    combinedCheckList.push({ ...item, id: `C-${index + 1}`, isBackup: true });
+                });
+
+                renderKaryawanAparTable(combinedCheckList, inspectedCodesThisMonth);
+            } catch(e) {
+                let combinedCheckList = [];
+                qrList.forEach(item => combinedCheckList.push({ ...item, isBackup: false }));
+                backupQrList.forEach((item, index) => combinedCheckList.push({ ...item, id: `C-${index + 1}`, isBackup: true }));
+                renderKaryawanAparTable(combinedCheckList, new Set());
+            }
+        }
+
+        function renderKaryawanAparTable(dataArray, inspectedSet) {
+            const tbody = document.getElementById('karyawanAparStatusTableBody');
+            tbody.innerHTML = "";
+            const mVal = document.getElementById('statusMonthSelect').value;
+            const yVal = document.getElementById('statusYearSelect').value;
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            const periodLabel = `${monthNames[parseInt(mVal)-1]} ${yVal}`;
+
+            dataArray.forEach((item) => {
+                let isChecked = inspectedSet.has(item.code.toLowerCase());
+                let badgeStatus = isChecked 
+                    ? `<span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 w-max mx-auto shadow-sm">🟢 Sudah Dicek (${periodLabel})</span>`
+                    : `<span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 w-max mx-auto shadow-sm">🔴 Belum Dicek (${periodLabel})</span>`;
+
+                let badgeType = item.isBackup 
+                    ? `<span class="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-bold">CADANGAN</span>` 
+                    : '';
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 border text-center">${item.id}</td>
+                        <td class="p-2 border text-center font-bold text-slate-900">${item.code} ${badgeType}</td>
+                        <td class="p-2 border text-center font-semibold text-slate-700">${item.location}</td>
+                        <td class="p-2 border text-center text-slate-600">${item.type} (${item.capacity} Kg)</td>
+                        <td class="p-2 border text-center">${badgeStatus}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterKaryawanAparStatus() {
+            loadKaryawanAparStatus();
+        }
+
+        function renderAparProfileTable(dataArray) {
+            const tbody = document.getElementById('aparProfileTableBody');
+            tbody.innerHTML = "";
+            dataArray.forEach((item) => {
+                let realIndex = qrList.findIndex(q => q.id === item.id);
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 border text-center">${item.id}</td>
+                        <td class="p-2 border text-center font-bold text-slate-900">${item.code}</td>
+                        <td class="p-2 border text-center font-semibold text-red-700">${item.location}</td>
+                        <td class="p-2 border text-center">${item.type}</td>
+                        <td class="p-2 border text-center">${item.capacity} Kg</td>
+                        <td class="p-2 border text-center font-semibold text-blue-800">${item.pressureType || 'Manometer'}</td>
+                        <td class="p-2 border text-center font-bold text-red-600">${item.expDate || 'Desember 2028'}</td>
+                        <td class="p-2 border text-center no-print">
+                            <button type="button" onclick="openQrEditModal(${realIndex})" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-[11px] font-semibold transition">✏️ Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterAparTableProfile() {
+            const query = document.getElementById('searchAparProfile').value.toLowerCase();
+            const filtered = qrList.filter(item => item.code.toLowerCase().includes(query) || item.location.toLowerCase().includes(query) || item.type.toLowerCase().includes(query) || (item.pressureType && item.pressureType.toLowerCase().includes(query)) || (item.expDate && item.expDate.toLowerCase().includes(query)));
+            renderAparProfileTable(filtered);
+        }
+
+        function renderBackupAparProfileTable(dataArray) {
+            const tbody = document.getElementById('backupAparProfileTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            if(dataArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500 italic">Belum ada data APAR Cadangan.</td></tr>`;
+                return;
+            }
+            dataArray.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 border text-center">${index + 1}</td>
+                        <td class="p-2 border text-center font-bold text-slate-900">${item.code}</td>
+                        <td class="p-2 border text-center font-semibold text-amber-700">${item.location}</td>
+                        <td class="p-2 border text-center">${item.type}</td>
+                        <td class="p-2 border text-center">${item.capacity} Kg</td>
+                        <td class="p-2 border text-center font-semibold text-blue-800">${item.pressureType || 'Manometer'}</td>
+                        <td class="p-2 border text-center font-bold text-red-600">${item.expDate || 'Desember 2029'}</td>
+                        <td class="p-2 border text-center no-print space-x-1">
+                            <button type="button" onclick="openEditBackupModal(${index})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">✏️ Edit</button>
+                            <button type="button" onclick="deleteBackupApar(${index})" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">🗑️ Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterBackupAparTableProfile() {
+            const query = document.getElementById('searchBackupAparProfile').value.toLowerCase();
+            const filtered = backupQrList.filter(item => item.code.toLowerCase().includes(query) || item.location.toLowerCase().includes(query) || item.type.toLowerCase().includes(query) || (item.expDate && item.expDate.toLowerCase().includes(query)));
+            renderBackupAparProfileTable(filtered);
+        }
+
+        function openAddBackupModal() {
+            document.getElementById('backupModalTitle').textContent = "Tambah APAR Cadangan";
+            document.getElementById('editBackupIndex').value = "-1";
+            document.getElementById('modalBackupCodeText').value = `CAD-${String(backupQrList.length + 1).padStart(3, '0')}`;
+            document.getElementById('modalBackupLocText').value = "Gudang K3LH Cadangan";
+            document.getElementById('modalBackupTypeText').value = "Dry Chemical Powder";
+            document.getElementById('modalBackupCapText').value = "6";
+            document.getElementById('modalBackupPressureText').value = "Manometer";
+            document.getElementById('modalBackupExpText').value = "Desember 2029";
+            document.getElementById('editBackupModal').classList.remove('hidden');
+        }
+
+        function openEditBackupModal(index) {
+            const item = backupQrList[index];
+            document.getElementById('backupModalTitle').textContent = "Edit APAR Cadangan";
+            document.getElementById('editBackupIndex').value = index;
+            document.getElementById('modalBackupCodeText').value = item.code;
+            document.getElementById('modalBackupLocText').value = item.location;
+            document.getElementById('modalBackupTypeText').value = item.type;
+            document.getElementById('modalBackupCapText').value = item.capacity;
+            document.getElementById('modalBackupPressureText').value = item.pressureType || 'Manometer';
+            document.getElementById('modalBackupExpText').value = item.expDate || 'Desember 2029';
+            document.getElementById('editBackupModal').classList.remove('hidden');
+        }
+
+        function closeBackupModal() {
+            document.getElementById('editBackupModal').classList.add('hidden');
+        }
+
+        function saveBackupAparData() {
+            const editIndex = parseInt(document.getElementById('editBackupIndex').value);
+            const code = document.getElementById('modalBackupCodeText').value.trim();
+            const location = document.getElementById('modalBackupLocText').value.trim();
+            const type = document.getElementById('modalBackupTypeText').value;
+            const capacity = document.getElementById('modalBackupCapText').value.trim();
+            const pressureType = document.getElementById('modalBackupPressureText').value;
+            const expDate = document.getElementById('modalBackupExpText').value.trim();
+
+            if(!code || !location) {
+                alert("Kode dan Lokasi APAR Cadangan wajib diisi!");
+                return;
+            }
+
+            if(editIndex === -1) {
+                backupQrList.push({ id: backupQrList.length + 1, code, location, type, capacity, pressureType, expDate });
+            } else {
+                if(backupQrList[editIndex]) {
+                    backupQrList[editIndex].code = code;
+                    backupQrList[editIndex].location = location;
+                    backupQrList[editIndex].type = type;
+                    backupQrList[editIndex].capacity = capacity;
+                    backupQrList[editIndex].pressureType = pressureType;
+                    backupQrList[editIndex].expDate = expDate;
+                }
+            }
+
+            localStorage.setItem('k3_backup_qr_list_v1', JSON.stringify(backupQrList));
+            closeBackupModal();
+            renderBackupAparProfileTable(backupQrList);
+            alert("Data APAR Cadangan berhasil disimpan & disinkronkan!");
+        }
+
+        function deleteBackupApar(index) {
+            if(confirm(`Apakah Anda yakin ingin menghapus APAR Cadangan "${backupQrList[index].code}"?`)) {
+                backupQrList.splice(index, 1);
+                localStorage.setItem('k3_backup_qr_list_v1', JSON.stringify(backupQrList));
+                renderBackupAparProfileTable(backupQrList);
+                alert("APAR Cadangan berhasil dihapus!");
+            }
+        }
+
+        function renderAllQrCodes() {
+            const container = document.getElementById('qrGridContainer');
+            container.innerHTML = "";
+
+            let combinedList = [];
+            qrList.forEach(item => combinedList.push({ ...item, isBackup: false }));
+            backupQrList.forEach(item => combinedList.push({ ...item, isBackup: true }));
+
+            combinedList.forEach((item, idx) => {
+                let cardId = `qr_box_all_${idx}`;
+                let badgeBackup = item.isBackup ? `<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[8px] font-bold">CADANGAN</span>` : '';
+                container.innerHTML += `
+                    <div class="border rounded-lg p-3 text-center bg-white shadow-sm flex flex-col items-center justify-between space-y-2 page-break-inside-avoid">
+                        <div class="w-full">
+                            <div class="flex justify-between items-center">
+                                <p class="text-xs font-bold text-slate-900">${item.code}</p>
+                                ${badgeBackup}
+                            </div>
+                            <p class="text-[11px] font-semibold text-red-700">${item.location}</p>
+                            <p class="text-[10px] text-slate-600">Media: <b>${item.type}</b> | Kapasitas: <b>${item.capacity} Kg</b><br>Tekanan: <b>${item.pressureType || 'Manometer'}</b> | Exp: <b class="text-red-600">${item.expDate || 'Des 2028'}</b></p>
+                        </div>
+                        <div id="${cardId}" class="flex justify-center my-1"></div>
+                        <div class="w-full flex justify-between items-center pt-1 border-t">
+                            <span class="text-[8px] text-slate-400">PTKP-K3LH</span>
+                            <span class="text-[9px] text-emerald-700 font-bold">Sinkron</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            setTimeout(() => {
+                combinedList.forEach((item, idx) => {
+                    let el = document.getElementById(`qr_box_all_${idx}`);
+                    if(el) {
+                        el.innerHTML = ""; 
+                        new QRCode(el, { text: item.code, width: 80, height: 80, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
+                    }
+                });
+            }, 50);
+        }
+
+        async function openAparDetailPopup(aparCode) {
+            let item = qrList.find(q => q.code.toLowerCase() === aparCode.toLowerCase());
+            if(!item) {
+                item = backupQrList.find(q => q.code.toLowerCase() === aparCode.toLowerCase());
+            }
+            if(!item) return;
+
+            document.getElementById('modalAparIdNum').textContent = item.id || 'C';
+            document.getElementById('modalAparCodeTitle').textContent = item.code;
+            document.getElementById('modalAparLocationText').textContent = item.location;
+            document.getElementById('modalAparTypeText').textContent = item.type;
+            document.getElementById('modalAparCapText').textContent = `${item.capacity} Kg`;
+            document.getElementById('modalAparPressureType').textContent = item.pressureType || 'Manometer';
+            document.getElementById('modalAparExpDate').textContent = item.expDate || 'Desember 2028';
+            
+            const badgeEl = document.getElementById('modalAparStatusBadge');
+            badgeEl.innerHTML = `<span class="text-slate-500 italic">Mengecek status...</span>`;
+            document.getElementById('aparDetailModal').classList.remove('hidden');
+
+            const now = new Date();
+            const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            const currentMonthName = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
+            let isCheckedThisMonth = false;
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=apar");
+                const result = await res.json();
+                if(result.records) {
+                    result.records.forEach(r => {
+                        let checkDateStr = r[2] || r[1];
+                        if(checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[3].trim().toLowerCase() === item.code.toLowerCase()) {
+                            isCheckedThisMonth = true;
+                        }
+                    });
+                }
+            } catch(e) {}
+
+            if(isCheckedThisMonth) {
+                badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full text-[11px]">🟢 Sudah Dicek (${currentMonthName})</span>`;
+            } else {
+                badgeEl.innerHTML = `<span class="text-red-700 bg-red-100 px-2.5 py-1 rounded-full text-[11px]">🔴 Belum Dicek (${currentMonthName})</span>`;
+            }
+        }
+
+        function closeAparDetailModal() {
+            document.getElementById('aparDetailModal').classList.add('hidden');
+        }
+
+        function renderPublicMapMarkers(filterQuery = "") {
+            const layer = document.getElementById('publicMarkersLayer');
+            if(!layer) return;
+            layer.innerHTML = "";
+
+            qrList.forEach(item => {
+                if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
+
+                let marker = document.createElement('div');
+                marker.className = "absolute w-6 h-6 -ml-3 -mt-3 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition hover:scale-125 z-20";
+                marker.style.left = `${item.x || 50}%`;
+                marker.style.top = `${item.y || 50}%`;
+                marker.title = `Klik untuk melihat spesifikasi ${item.code}`;
+                marker.textContent = item.id;
+
+                marker.onclick = (e) => {
+                    e.stopPropagation();
+                    openAparDetailPopup(item.code);
+                };
+                layer.appendChild(marker);
+            });
+        }
+
+        function filterPublicMap() {
+            const q = document.getElementById('publicMapSearch').value.toLowerCase();
+            renderPublicMapMarkers(q);
+        }
+
+        function renderAdminMapMarkers() {
+            const layer = document.getElementById('adminMarkersLayer');
+            const select = document.getElementById('mapItemSelect');
+            if(!layer || !select) return;
+
+            layer.innerHTML = "";
+            select.innerHTML = `<option value="">-- Pilih Cepat APAR (1-150) --</option>`;
+
+            qrList.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.code} - ${item.location}</option>`;
+
+                let marker = document.createElement('div');
+                marker.id = `admin_marker_${item.id}`;
+                marker.className = `absolute w-6 h-6 -ml-3 -mt-3 text-white font-bold text-[10px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${activeMapEditIndex === item.id ? 'bg-amber-500 scale-125 ring-4 ring-amber-300' : 'bg-red-600 hover:bg-red-700'}`;
+                marker.style.left = `${item.x || 50}%`;
+                marker.style.top = `${item.y || 50}%`;
+                marker.textContent = item.id;
+                marker.title = `Klik untuk pilih & geser ${item.code}`;
+
+                marker.onclick = (e) => {
+                    e.stopPropagation();
+                    activeMapEditIndex = item.id;
+                    select.value = item.id;
+                    renderAdminMapMarkers();
+                    openAparDetailPopup(item.code);
+                };
+                layer.appendChild(marker);
+            });
+
+            const canvas = document.getElementById('adminMapCanvas');
+            canvas.onclick = (e) => {
+                if(!activeMapEditIndex) return;
+                const rect = canvas.getBoundingClientRect();
+                const xClick = e.clientX - rect.left;
+                const yClick = e.clientY - rect.top;
+                const xPct = ((xClick / rect.width) * 100).toFixed(1);
+                const yPct = ((yClick / rect.height) * 100).toFixed(1);
+
+                let target = qrList.find(q => q.id === activeMapEditIndex);
+                if(target) {
+                    target.x = parseFloat(xPct);
+                    target.y = parseFloat(yPct);
+                    renderAdminMapMarkers();
+                }
+            };
+        }
+
+        function focusMapItem(id) {
+            if(!id) return;
+            activeMapEditIndex = parseInt(id);
+            renderAdminMapMarkers();
+            let target = qrList.find(q => q.id === activeMapEditIndex);
+            if(target) openAparDetailPopup(target.code);
+        }
+
+        function deleteActiveMarker() {
+            if(!activeMapEditIndex) {
+                alert("Pilih terlebih dahulu titik APAR yang ingin dihapus pada peta atau dropdown.");
+                return;
+            }
+            if(confirm(`Apakah Anda yakin ingin menghapus/mereset titik penempatan APAR ID #${activeMapEditIndex}?`)) {
+                let target = qrList.find(q => q.id === activeMapEditIndex);
+                if(target) {
+                    target.x = -10; target.y = -10;
+                    localStorage.setItem('k3_qr_list_1_150_v11', JSON.stringify(qrList));
+                    activeMapEditIndex = null;
+                    renderAdminMapMarkers();
+                    alert("Titik APAR berhasil dihapus dari peta!");
+                }
+            }
+        }
+
+        function saveMapPositions() {
+            localStorage.setItem('k3_qr_list_1_150_v11', JSON.stringify(qrList));
+            alert("Posisi titik koordinat Peta APAR berhasil disimpan!");
+        }
+
+        function openQrEditModal(index) {
+            const item = qrList[index];
+            document.getElementById('editQrIndex').value = index;
+            document.getElementById('modalQrCodeText').value = item.code;
+            document.getElementById('modalQrLocText').value = item.location;
+            document.getElementById('modalQrTypeText').value = item.type;
+            document.getElementById('modalQrCapText').value = item.capacity;
+            document.getElementById('modalQrPressureText').value = item.pressureType || 'Manometer';
+            document.getElementById('modalQrExpText').value = item.expDate || 'Desember 2028';
+            document.getElementById('editQrModal').classList.remove('hidden');
+        }
+
+        function closeQrEditModal() {
+            document.getElementById('editQrModal').classList.add('hidden');
+        }
+
+        function saveQrEdit() {
+            const index = parseInt(document.getElementById('editQrIndex').value);
+            if(qrList[index]) {
+                qrList[index].code = document.getElementById('modalQrCodeText').value.trim();
+                qrList[index].location = document.getElementById('modalQrLocText').value.trim();
+                qrList[index].type = document.getElementById('modalQrTypeText').value;
+                qrList[index].capacity = document.getElementById('modalQrCapText').value.trim();
+                qrList[index].pressureType = document.getElementById('modalQrPressureText').value;
+                qrList[index].expDate = document.getElementById('modalQrExpText').value.trim();
+                localStorage.setItem('k3_qr_list_1_150_v11', JSON.stringify(qrList));
+                closeQrEditModal();
+                switchQrSubTab('table');
+                alert("Master Profil APAR berhasil diperbarui & disinkronkan ke Peta & Kartu QR!");
+            }
+        }
+
+        function printQrCodes() { window.print(); }
+
+        function switchTemuanTab(tab) {
+            document.getElementById('tabTemuanForm').classList.add('hidden');
+            document.getElementById('tabTemuanTl').classList.add('hidden');
+            document.getElementById('tabTemuanReport').classList.add('hidden');
+
+            const btnForm = document.getElementById('btnTemuanForm');
+            const btnTl = document.getElementById('btnTemuanTl');
+            const btnReport = document.getElementById('btnTemuanReport');
+
+            [btnForm, btnTl, btnReport].forEach(b => {
+                if(b) b.className = "bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+            });
+
+            if (tab === 'form') {
+                if(currentUser.role === 'admin') return;
+                document.getElementById('tabTemuanForm').classList.remove('hidden');
+                if(btnForm) btnForm.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+                setAutomaticDates(); generateTemuanId();
+            } else if (tab === 'tl') {
+                if(currentUser.role === 'admin') return;
+                document.getElementById('tabTemuanTl').classList.remove('hidden');
+                if(btnTl) btnTl.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+                loadTemuanOptionsForTl();
+            } else {
+                if(currentUser.role === 'peserta') return;
+                document.getElementById('tabTemuanReport').classList.remove('hidden');
+                if(btnReport) btnReport.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition";
+                loadTemuanData();
+            }
+        }
+
+        function renderApdStock() {
+            const grid = document.getElementById('apdStockGrid');
+            grid.innerHTML = "";
+            apdCatalog.forEach((item, idx) => {
+                let editableInput = currentUser && currentUser.role === 'admin' 
+                    ? `<div class="flex items-center gap-2 mt-1"><input type="number" id="stockInput_${idx}" value="${item.stock}" class="w-20 px-2 py-1 border rounded text-center text-sm font-bold text-blue-700"> <span class="text-xs">Pcs</span></div>`
+                    : `<p class="text-base font-bold text-blue-700">${item.stock} Pcs</p>`;
+                grid.innerHTML += `<div class="bg-slate-50 border p-3 rounded-xl text-center space-y-1 flex flex-col items-center justify-between"><div><div class="text-2xl">${item.icon}</div><p class="text-xs font-bold text-slate-700 mt-1">${item.name}</p></div>${editableInput}</div>`;
+            });
+        }
+
+        function saveApdStockChanges() {
+            apdCatalog.forEach((item, idx) => {
+                const val = document.getElementById(`stockInput_${idx}`);
+                if(val) item.stock = parseInt(val.value) || 0;
+            });
+            localStorage.setItem('k3_apd_stock', JSON.stringify(apdCatalog));
+            alert("Stok APD berhasil diperbarui!");
+            renderApdStock();
+        }
+
+        function getBase64(file) {
+            return new Promise((res, rej) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => res(reader.result);
+                reader.onerror = err => rej(err);
+            });
+        }
+
+        async function handleAparSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true; btn.textContent = "Mengirim...";
+            try {
+                let photoBase64 = "";
+                const fileInput = document.getElementById('photoFile');
+                if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
+
+                const payload = {
+                    action: "apar",
+                    inspectionDate: document.getElementById('inspectionDate').value,
+                    code: document.getElementById('code').value,
+                    location: document.getElementById('location').value,
+                    type: document.getElementById('type').value,
+                    capacity: document.getElementById('capacity').value,
+                    pressureType: document.getElementById('pressureTypeInput').value,
+                    expDate: document.getElementById('expDateInput').value,
+                    pressure: document.getElementById('pressure').value,
+                    pin: document.getElementById('pin').value,
+                    hose: document.getElementById('hose').value,
+                    body: document.getElementById('body').value,
+                    hanger: document.getElementById('hanger').value,
+                    tag: document.getElementById('tag').value,
+                    access: document.getElementById('access').value,
+                    status: document.getElementById('status').value,
+                    notes: document.getElementById('notes').value,
+                    inspector: document.getElementById('inspector').value,
+                    photoBase64: photoBase64
+                };
+
+                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                alert("Data Inspeksi APAR berhasil disimpan!");
+                document.getElementById('aparForm').reset();
+                setAutomaticDates();
+            } catch(e) { alert("Gagal menyimpan data."); }
+            finally { btn.disabled = false; btn.textContent = "Kirim & Simpan"; }
+        }
+
+        async function handleTemuanSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitTemuanBtn');
+            btn.disabled = true; btn.textContent = "Mengirim...";
+            try {
+                let photoBase64 = "";
+                const fileInput = document.getElementById('tFoto');
+                if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
+
+                const payload = {
+                    action: "temuan",
+                    idTemuan: document.getElementById('tId').value,
+                    namaPelapor: document.getElementById('tNama').value,
+                    regPelapor: document.getElementById('tReg').value,
+                    lokasi: document.getElementById('tLokasi').value,
+                    kategori: document.getElementById('tKategori').value,
+                    deskripsi: document.getElementById('tDeskripsi').value,
+                    statusPenanganan: document.getElementById('tStatus').value,
+                    photoBase64: photoBase64
+                };
+
+                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                alert("Laporan Temuan K3 berhasil dikirim!");
+                event.target.reset(); setAutomaticDates(); generateTemuanId();
+            } catch(e) { alert("Gagal mengirim laporan."); }
+            finally { btn.disabled = false; btn.textContent = "Kirim Laporan Temuan K3"; }
+        }
+
+        async function handleTlSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitTlBtn');
+            btn.disabled = true; btn.textContent = "Mengirim...";
+            try {
+                let photoBase64 = "";
+                const fileInput = document.getElementById('tlFoto');
+                if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
+
+                const payload = {
+                    action: "tindaklanjut",
+                    idTemuan: document.getElementById('tlTemuanSelect').value,
+                    namaPetugas: document.getElementById('tlNama').value,
+                    regPetugas: document.getElementById('tlReg').value,
+                    uraianTl: document.getElementById('tlProgres').value,
+                    statusAkhir: document.getElementById('tlStatus').value,
+                    photoBase64: photoBase64
+                };
+
+                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                alert("Tindak lanjut berhasil disimpan!");
+                event.target.reset();
+                document.getElementById('selectedTemuanPreview').classList.add('hidden');
+            } catch(e) { alert("Gagal menyimpan tindak lanjut."); }
+            finally { btn.disabled = false; btn.textContent = "Simpan & Kirim Tindak Lanjut"; }
+        }
+
+        async function handleApdSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitApdBtn');
+            btn.disabled = true; btn.textContent = "Mengirim...";
+            try {
+                let photoBase64 = "";
+                const fileInput = document.getElementById('aFoto');
+                if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
+
+                const payload = {
+                    action: "apd",
+                    tglPermintaan: document.getElementById('aTgl').value,
+                    namaPemohon: document.getElementById('aNama').value,
+                    regPemohon: document.getElementById('aReg').value,
+                    departemen: document.getElementById('aDept').value,
+                    jenisApd: document.getElementById('aJenis').value,
+                    ukuran: document.getElementById('aUkuran').value || '-',
+                    jumlah: document.getElementById('aJumlah').value,
+                    merk: document.getElementById('aMerk').value || '-',
+                    photoBase64: photoBase64
+                };
+
+                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                alert("Permintaan APD berhasil diajukan!");
+                event.target.reset(); setAutomaticDates();
+            } catch(e) { alert("Gagal mengajukan permintaan."); }
+            finally { btn.disabled = false; btn.textContent = "Ajukan Permintaan APD"; }
+        }
+
+        async function loadReportData() {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-500">Memuat data rekap...</td></tr>`;
+
+            const now = new Date();
+            const todayFormatted = formatDateIndo(now);
+            if(document.getElementById('signDate')) document.getElementById('signDate').textContent = todayFormatted;
+
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=apar");
+                const result = await res.json();
+                if (result.records) {
+                    let rawRecords = result.records;
+                    const threeYearsAgoTime = new Date().setFullYear(now.getFullYear() - 3);
+                    let filteredByRetention = rawRecords.filter(r => {
+                        let checkDateStr = r[2] || r[1];
+                        let d = new Date(checkDateStr);
+                        if (isNaN(d.getTime())) return true;
+                        return d.getTime() >= threeYearsAgoTime;
+                    });
+
+                    const mode = document.getElementById('filterMode').value;
+                    let finalRecords = [];
+                    let titleText = "LAPORAN REKAPITULASI INSPEKSI APAR";
+
+                    if (mode === 'monthly') {
+                        const selectedMonthVal = document.getElementById('filterMonth').value;
+                        if (selectedMonthVal) {
+                            finalRecords = filteredByRetention.filter(r => {
+                                let checkDateStr = r[2] || r[1];
+                                return checkDateStr && checkDateStr.startsWith(selectedMonthVal);
+                            });
+                            const [yr, mth] = selectedMonthVal.split('-');
+                            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                            titleText = `LAPORAN REKAPITULASI INSPEKSI APAR BULAN ${monthNames[parseInt(mth)-1].toUpperCase()} ${yr}`;
+                        } else {
+                            finalRecords = filteredByRetention;
+                        }
+                    } else {
+                        const semVal = document.getElementById('filterSemester').value;
+                        const semYear = document.getElementById('filterSemesterYear').value;
+                        finalRecords = filteredByRetention.filter(r => {
+                            let checkDateStr = r[2] || r[1];
+                            if(!checkDateStr) return false;
+                            let d = new Date(checkDateStr);
+                            if (d.getFullYear().toString() !== semYear) return false;
+                            let m = d.getMonth() + 1;
+                            if (semVal === "1") return m >= 1 && m <= 6;
+                            else return m >= 7 && m <= 12;
+                        });
+                        titleText = `LAPORAN REKAPITULASI INSPEKSI APAR SEMESTER ${semVal} TAHUN ${semYear}`;
+                    }
+
+                    document.getElementById('reportTitleHeader').textContent = titleText;
+                    if(document.getElementById('reportDate')) document.getElementById('reportDate').textContent = `Dicetak Pada: ${todayFormatted} (Retensi Data Aktif: 3 Tahun)`;
+
+                    globalAparList = finalRecords;
+                    document.getElementById('statTotal').textContent = finalRecords.length;
+                    document.getElementById('statLayak').textContent = finalRecords.filter(r => r[14] === 'LAYAK').length;
+                    document.getElementById('statPerbaikan').textContent = finalRecords.length - finalRecords.filter(r => r[14] === 'LAYAK').length;
+
+                    tbody.innerHTML = "";
+                    if(finalRecords.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-500 italic">Tidak ada data rekap untuk periode ini.</td></tr>`;
+                        return;
+                    }
+
+                    finalRecords.forEach((r, idx) => {
+                        let waktuInputPretty = formatDateTimePretty(r[1]);
+                        let tglCekPretty = formatDatePretty(r[2]);
+                        let catatanRekomendasi = r[15] || '-';
+                        let fotoImg = r[17] ? `<a href="${r[17]}" target="_blank"><img src="${r[17]}" class="w-12 h-12 object-cover rounded shadow border mx-auto hover:scale-150 transition"></a>` : '<span class="text-red-500 font-bold text-[10px]">Tidak ada foto</span>';
+
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2 border text-center">${idx + 1}</td>
+                                <td class="p-2 border text-center">${waktuInputPretty}</td>
+                                <td class="p-2 border text-center">${tglCekPretty}</td>
+                                <td class="p-2 border text-center font-bold">${r[3]}</td>
+                                <td class="p-2 border text-center">${r[4]}</td>
+                                <td class="p-2 border text-center">${r[13]}</td>
+                                <td class="p-2 border text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${r[14] === 'LAYAK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r[14]}</span></td>
+                                <td class="p-2 border text-center text-[11px] font-medium text-slate-700">${catatanRekomendasi}</td>
+                                <td class="p-2 border text-center">${r[16]}</td>
+                                <td class="p-2 border text-center">${fotoImg}</td>
+                                <td class="p-2 border text-center no-print">
+                                    <button onclick="openEditModal(${idx})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">✏️ Edit Evaluasi</button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-red-500">Gagal memuat rekap.</td></tr>`; }
+        }
+
+        function openEditModal(index) {
+            const data = globalAparList[index];
+            if(!data) return;
+            document.getElementById('editRowIndex').value = index;
+            document.getElementById('editCode').value = `${data[3]} - ${data[4]}`;
+            document.getElementById('editStatus').value = data[14] || 'LAYAK';
+            document.getElementById('editAccess').value = data[13] || 'Bebas / Tidak Terhalang';
+            if(document.getElementById('editRekomendasi')) {
+                document.getElementById('editRekomendasi').value = data[15] || "Perbaikan / Refill Tekanan (Pressure Gauge)";
+            }
+            document.getElementById('editPhotoFile').value = ""; 
+            const previewContainer = document.getElementById('currentPhotoPreviewContainer');
+            if (data[17]) {
+                previewContainer.innerHTML = `<span class="text-slate-600 font-semibold">Foto Saat Ini:</span> <a href="${data[17]}" target="_blank"><img src="${data[17]}" class="w-16 h-16 object-cover rounded border shadow"></a>`;
+            } else {
+                previewContainer.innerHTML = `<span class="text-red-500 font-semibold">⚠️ Belum ada foto dokumentasi. Silakan upload foto baru di bawah.</span>`;
+            }
+            document.getElementById('editAparModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { document.getElementById('editAparModal').classList.add('hidden'); }
+
+        async function handleEditAparSubmit(event) {
+            event.preventDefault();
+            const idx = parseInt(document.getElementById('editRowIndex').value);
+            const btn = document.getElementById('submitEditBtn');
+            btn.disabled = true; btn.textContent = "Menyimpan ke Spreadsheet...";
+            try {
+                const data = globalAparList[idx];
+                if(data) {
+                    let photoBase64 = "";
+                    const fileInput = document.getElementById('editPhotoFile');
+                    if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
+
+                    const payload = {
+                        action: "updateApar",
+                        rowIndex: idx,
+                        code: data[3],
+                        status: document.getElementById('editStatus').value,
+                        access: document.getElementById('editAccess').value,
+                        notes: document.getElementById('editRekomendasi').value,
+                        photoBase64: photoBase64
+                    };
+
+                    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                    alert("Evaluasi & Rekomendasi APAR berhasil diperbarui!");
+                    closeEditModal();
+                    setTimeout(loadReportData, 1500);
+                }
+            } catch(e) { alert("Gagal memperbarui evaluasi."); }
+            finally { btn.disabled = false; btn.textContent = "Simpan Evaluasi"; }
+        }
+
+        async function loadTemuanData() {
+            const tbody = document.getElementById('temuanTableBody');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat...</td></tr>`;
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=temuan");
+                const result = await res.json();
+                if (result.records) {
+                    globalTemuanList = result.records;
+                    const recs = globalTemuanList;
+                    document.getElementById('statTotalTemuan').textContent = recs.length;
+                    document.getElementById('statSelesaiTemuan').textContent = recs.filter(r => r[9] && r[9].toLowerCase().includes('selesai')).length;
+                    document.getElementById('statProsesTemuan').textContent = recs.length - recs.filter(r => r[9] && r[9].toLowerCase().includes('selesai')).length;
+
+                    tbody.innerHTML = "";
+                    recs.forEach((r) => {
+                        let idTemuan = r[2] || `-`;
+                        let waktuTemuan = formatDateTimePretty(r[3] || r[1]);
+                        let pelapor = `${r[4]} (${r[5]})`;
+                        let lokasi = r[6];
+                        let statusAwal = r[9] || `Proses`;
+                        let uraianTemuan = `<b>[${r[7]}]</b><br>${r[8]}<br><span class="text-[10px] text-amber-800 font-semibold">Status Awal: ${statusAwal}</span>`;
+                        let fotoBefore = r[10] ? `<a href="${r[10]}" target="_blank"><img src="${r[10]}" class="w-12 h-12 object-cover rounded shadow border mx-auto"></a>` : '-';
+                        let uraianTl = r[13] ? `<br><b>TL:</b> ${r[13]}<br><b>PIC:</b> ${r[11]} (${r[12]})` : '<br><span class="text-slate-400 italic">Belum ditindaklanjuti</span>';
+                        let fotoAfter = r[14] ? `<br><a href="${r[14]}" target="_blank"><img src="${r[14]}" class="w-12 h-12 object-cover rounded shadow border mx-auto mt-1"></a>` : '';
+
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2 border text-center"><b>${idTemuan}</b><br><span class="text-[10px] text-slate-500">${waktuTemuan}</span></td>
+                                <td class="p-2 border text-center"><b>${lokasi}</b><br><span class="text-[10px] text-slate-500">${pelapor}</span></td>
+                                <td class="p-2 border text-center">${uraianTemuan}</td>
+                                <td class="p-2 border text-center text-[11px]">${uraianTl}</td>
+                                <td class="p-2 border text-center text-[11px]">${fotoBefore} ${fotoAfter}</td>
+                            </tr>`;
+                    });
+                }
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="5" class="p-a text-red-500 text-center">Gagal memuat rekap temuan.</td></tr>`; }
+        }
+
+        async function loadTemuanOptionsForTl() {
+            const select = document.getElementById('tlTemuanSelect');
+            select.innerHTML = `<option value="">-- Memuat daftar ID Temuan --</option>`;
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=temuan");
+                const result = await res.json();
+                if (result.records) {
+                    globalTemuanList = result.records;
+                    select.innerHTML = `<option value="">-- Pilih ID Temuan --</option>`;
+                    globalTemuanList.forEach((r) => {
+                        select.innerHTML += `<option value="${r[2]}">${r[2]} - Lokasi: ${r[6]} (${r[8] ? r[8].slice(0,30) : ''}..)</option>`;
+                    });
+                }
+            } catch(e) { select.innerHTML = `<option value="">Gagal memuat temuan</option>`; }
+        }
+
+        function fillTemuanDetail() {
+            const selectedId = document.getElementById('tlTemuanSelect').value;
+            const previewBox = document.getElementById('selectedTemuanPreview');
+            if(!selectedId) { previewBox.classList.add('hidden'); return; }
+            const found = globalTemuanList.find(r => r[2] === selectedId);
+            if(found) {
+                previewBox.classList.remove('hidden');
+                previewBox.innerHTML = `<b>Detail Temuan:</b><br>• Pelapor: ${found[4]} (${found[5]})<br>• Lokasi: ${found[6]}<br>• Kategori: ${found[7]}<br>• Uraian: ${found[8]}`;
+            }
+        }
+
+        function handleProfileUpdate(event) {
+            event.preventDefault();
+            currentUser.name = document.getElementById('profileName').value;
+            localStorage.setItem('k3_current_user', JSON.stringify(currentUser));
+            if(document.getElementById('userNameDisplay')) document.getElementById('userNameDisplay').textContent = currentUser.name;
+            alert("Profil diperbarui!");
+        }
+
+        function startScanner() {
+            document.getElementById('reader-container').classList.remove('hidden');
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, msg => {
+                document.getElementById('code').value = msg;
+                autoFillAparByCode(msg);
+                stopScanner();
+            }, err => {});
+        }
+        function stopScanner() { if(html5QrCode) html5QrCode.stop().then(() => document.getElementById('reader-container').classList.add('hidden')).catch(()=>{}); }
+    </script>
+</body>
+</html>
