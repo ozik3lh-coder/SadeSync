@@ -1892,6 +1892,16 @@
             });
         }
 
+        // FUNGSI DOWNLOAD FOTO DARI BASE64 OTOMATIS
+        function downloadImage(base64Data, aparCode) {
+            const link = document.createElement('a');
+            link.href = base64Data;
+            link.download = `Dokumentasi_APAR_${aparCode}_${new Date().toISOString().slice(0,10)}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         async function handleAparSubmit(event) {
             event.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -2083,14 +2093,15 @@
 
                     finalRecords.forEach((r, idx) => {
                         let waktuInputPretty = formatDateTimePretty(r[0]);
+                        let aparCode = r[1] || 'APAR';
                         let catatanRekomendasi = r[15] || '-';
-                        let fotoImg = r[17] ? `<a href="${r[17]}" target="_blank"><img src="${r[17]}" class="w-16 h-16 object-cover rounded-xl border border-slate-300 mx-auto shadow-sm hover:scale-110 transition"></a>` : '-';
+                        let fotoImg = r[17] ? `<button onclick="downloadImage('${r[17]}', '${aparCode}')" class="inline-block group focus:outline-none" title="Klik untuk Download Foto"><img src="${r[17]}" class="w-16 h-16 object-cover rounded-xl border border-slate-300 mx-auto shadow-sm group-hover:scale-110 transition cursor-pointer"></button>` : '-';
 
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-slate-50 transition">
                                 <td class="p-2.5 border-b text-center">${idx + 1}</td>
                                 <td class="p-2.5 border-b text-center">${waktuInputPretty}</td>
-                                <td class="p-2.5 border-b text-center font-bold">${r[1]}</td>
+                                <td class="p-2.5 border-b text-center font-bold">${aparCode}</td>
                                 <td class="p-2.5 border-b text-center">${r[2]}</td>
                                 <td class="p-2.5 border-b text-center">${r[13]}</td>
                                 <td class="p-2.5 border-b text-center"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${r[14] === 'LAYAK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r[14]}</span></td>
@@ -2197,7 +2208,7 @@
             document.getElementById('editPhotoFile').value = ""; 
             const previewContainer = document.getElementById('currentPhotoPreviewContainer');
             if (data[17]) {
-                previewContainer.innerHTML = `<span class="text-slate-600 font-semibold">Foto:</span> <a href="${data[17]}" target="_blank"><img src="${data[17]}" class="w-12 h-12 object-cover rounded-xl border shadow-sm"></a>`;
+                previewContainer.innerHTML = `<span class="text-slate-600 font-semibold">Foto:</span> <img src="${data[17]}" class="w-12 h-12 object-cover rounded-xl border shadow-sm">`;
             } else {
                 previewContainer.innerHTML = `<span class="text-red-500 font-semibold">⚠️ Belum ada foto.</span>`;
             }
@@ -2258,9 +2269,9 @@
                         let lokasi = r[4];
                         let statusAwal = r[7] || `Proses`;
                         let uraianTemuan = `<b>[${r[5]}]</b><br>${r[6]}<br><span class="text-[9px] text-amber-800 font-semibold">Status: ${statusAwal}</span>`;
-                        let fotoBefore = r[8] ? `<a href="${r[8]}" target="_blank"><img src="${r[8]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm"></a>` : '-';
+                        let fotoBefore = r[8] ? `<button onclick="downloadImage('${r[8]}', '${idTemuan}')"><img src="${r[8]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm cursor-pointer hover:scale-110 transition" title="Download Foto"></button>` : '-';
                         let uraianTl = r[11] ? `<br><b>TL:</b> ${r[11]}<br><b>PIC:</b> ${r[9]}` : '<br><span class="text-slate-400 italic">Belum TL</span>';
-                        let fotoAfter = r[13] ? `<br><a href="${r[13]}" target="_blank"><img src="${r[13]}" class="w-10 h-10 object-cover rounded-lg border mx-auto mt-1 shadow-sm"></a>` : '';
+                        let fotoAfter = r[13] ? `<br><button onclick="downloadImage('${r[13]}', '${idTemuan}_After')"><img src="${r[13]}" class="w-10 h-10 object-cover rounded-lg border mx-auto mt-1 shadow-sm cursor-pointer hover:scale-110 transition" title="Download Foto"></button>` : '';
 
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-slate-50 transition">
