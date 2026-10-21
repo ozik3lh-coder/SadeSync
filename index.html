@@ -100,8 +100,11 @@
                     </div>
                 </div>
                 <div class="text-[10px] md:text-[11px] text-slate-500 flex flex-wrap gap-2 items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat popup spesifikasi lengkap.</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block animate-pulse shadow-sm"></span> Titik APAR</span>
+                    <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat popup spesifikasi lengkap & status kelayakan.</span>
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span> Layak</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block animate-pulse shadow-sm"></span> Perlu Perbaikan</span>
+                    </div>
                 </div>
             </div>
         </main>
@@ -345,13 +348,14 @@
                         </div>
 
                         <div class="table-container rounded-xl border">
-                            <table class="w-full text-center text-xs border-collapse min-w-[750px]">
+                            <table class="w-full text-center text-xs border-collapse min-w-[850px]">
                                 <thead>
                                     <tr class="bg-slate-900 text-white">
                                         <th class="p-2.5 border-b border-slate-700">No.</th>
                                         <th class="p-2.5 border-b border-slate-700">Waktu Input</th>
                                         <th class="p-2.5 border-b border-slate-700">Kode APAR</th>
                                         <th class="p-2.5 border-b border-slate-700">Lokasi Area</th>
+                                        <th class="p-2.5 border-b border-slate-700">Kondisi / Fisik APAR</th>
                                         <th class="p-2.5 border-b border-slate-700">Akses</th>
                                         <th class="p-2.5 border-b border-slate-700">Status</th>
                                         <th class="p-2.5 border-b border-slate-700">Catatan</th>
@@ -360,7 +364,7 @@
                                         <th class="p-2.5 border-b border-slate-700 no-print">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="reportTableBody"><tr><td colspan="10" class="p-3 text-center text-slate-500">Memuat...</td></tr></tbody>
+                                <tbody id="reportTableBody"><tr><td colspan="11" class="p-3 text-center text-slate-500">Memuat...</td></tr></tbody>
                             </table>
                         </div>
 
@@ -383,14 +387,13 @@
                             <div id="evalTextSingle" contenteditable="true" class="w-full bg-white border border-slate-300 p-3 rounded-xl text-xs text-slate-800 leading-relaxed outline-none focus:ring-2 focus:ring-red-500 min-h-[80px] shadow-inner"></div>
                         </div>
 
-                        <!-- BAGIAN TANDA TANGAN DENGAN JARAK YANG DIPERLEBAR -->
+                        <!-- BAGIAN TANDA TANGAN -->
                         <div class="pt-6 flex justify-end text-xs page-break-inside-avoid">
                             <div class="text-center w-64">
                                 <p class="font-semibold text-slate-700">Padalarang, <span id="signDate"></span></p>
                                 <p class="font-semibold text-slate-700">Hormat Kami,</p>
                                 <p class="font-semibold text-slate-700">Departemen Jaminan Keandalan dan K3LH</p>
                                 
-                                <!-- Ruang/Space Tanda Tangan -->
                                 <div class="h-20"></div>
 
                                 <div>
@@ -765,7 +768,14 @@
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kapasitas:</span> <span class="font-bold text-slate-900" id="modalAparCapText">6 Kg</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Tekanan:</span> <span class="font-bold text-slate-900" id="modalAparPressureType">Manometer</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Exp:</span> <span class="font-bold text-red-600" id="modalAparExpDate">Desember 2028</span></div>
-                <div class="flex justify-between pt-0.5"><span class="text-slate-500 font-medium">Status Bulan Ini:</span> <span id="modalAparStatusBadge" class="font-bold">Memuat...</span></div>
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Status Bulan Ini:</span> <span id="modalAparStatusBadge" class="font-bold">Memuat...</span></div>
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kelayakan:</span> <span id="modalAparKelayakanBadge" class="font-bold">-</span></div>
+                
+                <!-- DETAIL PERBAIKAN -->
+                <div id="modalAparDetailPerbaikanContainer" class="hidden pt-1.5 border-t border-red-200">
+                    <span class="text-red-700 font-bold block mb-1">🛠️ Detail Perbaikan:</span>
+                    <div id="modalAparDetailPerbaikanText" class="p-2 bg-red-50 text-red-800 rounded-xl font-medium border border-red-200 leading-relaxed text-[11px]"></div>
+                </div>
             </div>
 
             <button type="button" onclick="closeAparDetailModal()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs transition shadow">Tutup</button>
@@ -801,7 +811,7 @@
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Rekomendasi Perbaikan</label>
-                    <select id="editRekomendasi" class="w-full px-3 py-2 border rounded-xl font-semibold bg-slate-50 shadow-sm">
+                    <select id="editRekomendasiSelect" onchange="checkEditRekomendasiChange(this.value)" class="w-full px-3 py-2 border rounded-xl font-semibold bg-slate-50 shadow-sm mb-2">
                         <option value="Perbaikan / Refill Tekanan (Pressure Gauge)">Refill Tekanan (Pressure Gauge)</option>
                         <option value="Penggantian Pin & Segel APAR">Penggantian Pin & Segel</option>
                         <option value="Perbaikan Selang & Nozzle (Retak/Sumbat)">Perbaikan Selang & Nozzle</option>
@@ -809,8 +819,10 @@
                         <option value="Perbaikan / Pengencangan Hanger & Bracket">Pengencangan Hanger & Bracket</option>
                         <option value="Penggantian / Pengisian Stiker Kartu Kendali">Penggantian Stiker Kartu Kendali</option>
                         <option value="Penataan Ulang Aksesibilitas (Terhalang Material)">Penataan Ulang Aksesibilitas</option>
-                        <option value="Lainnya / Sesuai Kondisi Lapangan">Lainnya</option>
+                        <option value="Lainnya">Lainnya</option>
                     </select>
+                    <!-- Input teks bebas -->
+                    <input type="text" id="editRekomendasiCustom" placeholder="Ketik detail perbaikan secara bebas di sini..." class="w-full px-3 py-2 border rounded-xl shadow-sm focus:ring-2 focus:ring-red-500 outline-none">
                 </div>
 
                 <div class="border-t pt-2 space-y-1.5">
@@ -1007,7 +1019,7 @@
             initQrListStorage();
             initBackupQrListStorage();
             initStatusYearOptions();
-            renderPublicMapMarkers();
+            fetchAparDataAndRenderMaps();
         });
 
         function formatText(command) {
@@ -1211,7 +1223,7 @@
             } else {
                 document.getElementById('loginPage').classList.remove('hidden');
                 document.getElementById('appContainer').classList.add('hidden');
-                renderPublicMapMarkers();
+                fetchAparDataAndRenderMaps();
             }
         }
 
@@ -1629,6 +1641,17 @@
             }, 50);
         }
 
+        async function fetchAparDataAndRenderMaps() {
+            try {
+                const res = await fetch(SCRIPT_URL + "?action=apar");
+                const result = await res.json();
+                globalAparList = result.records || [];
+            } catch(e) {
+                globalAparList = [];
+            }
+            renderPublicMapMarkers();
+        }
+
         async function openAparDetailPopup(aparCode) {
             let item = qrList.find(q => q.code.toLowerCase() === aparCode.toLowerCase());
             if(!item) item = backupQrList.find(q => q.code.toLowerCase() === aparCode.toLowerCase());
@@ -1643,33 +1666,58 @@
             document.getElementById('modalAparExpDate').textContent = item.expDate || 'Desember 2028';
             
             const badgeEl = document.getElementById('modalAparStatusBadge');
+            const kelayakanEl = document.getElementById('modalAparKelayakanBadge');
+            const detailContainer = document.getElementById('modalAparDetailPerbaikanContainer');
+            const detailText = document.getElementById('modalAparDetailPerbaikanText');
+
             badgeEl.innerHTML = `<span class="text-slate-500 italic">Mengecek...</span>`;
+            kelayakanEl.innerHTML = `<span class="text-slate-500 italic">-</span>`;
+            detailContainer.classList.add('hidden');
+            detailText.innerHTML = "";
             document.getElementById('aparDetailModal').classList.remove('hidden');
 
             const now = new Date();
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             let isCheckedThisMonth = false;
+            let currentStatusKelayakan = "BELUM DICEK";
+            let catatanPerbaikan = "";
+
             try {
                 let records = globalAparList;
                 if(!records || records.length === 0) {
                     const res = await fetch(SCRIPT_URL + "?action=apar");
                     const result = await res.json();
                     records = result.records || [];
+                    globalAparList = records;
                 }
                 if(records) {
-                    records.forEach(r => {
+                    let matchedRecord = records.find(r => {
                         let checkDateStr = r[0] || '';
-                        if(checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase()) {
-                            isCheckedThisMonth = true;
-                        }
+                        return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
                     });
+
+                    if(matchedRecord) {
+                        isCheckedThisMonth = true;
+                        currentStatusKelayakan = matchedRecord[14] || "LAYAK";
+                        catatanPerbaikan = matchedRecord[15] || matchedRecord[16] || "Perlu Perbaikan / Pengecekan Ulang";
+                    }
                 }
             } catch(e) {}
 
             if(isCheckedThisMonth) {
-                badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">🟢 Sudah Dicek</span>`;
+                badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">🟢 Sudah Dicek Bulan Ini</span>`;
+                if(currentStatusKelayakan === 'LAYAK') {
+                    kelayakanEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full text-[10px] font-bold">LAYAK</span>`;
+                    detailContainer.classList.add('hidden');
+                } else {
+                    kelayakanEl.innerHTML = `<span class="text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full text-[10px] font-bold">PERLU PERBAIKAN</span>`;
+                    detailText.textContent = catatanPerbaikan || "Terdapat kondisi tidak sesuai / memerlukan tindak lanjut perbaikan.";
+                    detailContainer.classList.remove('hidden');
+                }
             } else {
-                badgeEl.innerHTML = `<span class="text-red-700 bg-red-100 px-2 py-0.5 rounded-full text-[10px]">🔴 Belum Dicek</span>`;
+                badgeEl.innerHTML = `<span class="text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full text-[10px]">🟡 Belum Dicek Bulan Ini</span>`;
+                kelayakanEl.innerHTML = `<span class="text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full text-[10px] font-bold">BELUM ADA DATA</span>`;
+                detailContainer.classList.add('hidden');
             }
         }
 
@@ -1680,12 +1728,31 @@
             if(!layer) return;
             layer.innerHTML = "";
 
+            const now = new Date();
+            const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
             qrList.forEach(item => {
                 if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
                 if(item.x < 0 || item.y < 0) return;
 
+                let isPerbaikan = false;
+                if(globalAparList) {
+                    let matchedRecord = globalAparList.find(r => {
+                        let checkDateStr = r[0] || '';
+                        return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
+                    });
+                    if(matchedRecord && matchedRecord[14] === 'PERLU PERBAIKAN') {
+                        isPerbaikan = true;
+                    }
+                }
+
                 let marker = document.createElement('div');
-                marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 hover:scale-125";
+                if(isPerbaikan) {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 animate-pulse hover:scale-125";
+                } else {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 hover:scale-125";
+                }
+
                 marker.style.left = `${item.x || 50}%`;
                 marker.style.top = `${item.y || 50}%`;
                 marker.textContent = item.id;
@@ -1707,12 +1774,29 @@
             layer.innerHTML = "";
             select.innerHTML = `<option value="">-- Pilih Cepat APAR --</option>`;
 
+            const now = new Date();
+            const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
             qrList.forEach(item => {
                 if(item.x >= 0 && item.y >= 0) {
                     select.innerHTML += `<option value="${item.id}">${item.code} - ${item.location}</option>`;
 
+                    let isPerbaikan = false;
+                    if(globalAparList) {
+                        let matchedRecord = globalAparList.find(r => {
+                            let checkDateStr = r[0] || '';
+                            return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
+                        });
+                        if(matchedRecord && matchedRecord[14] === 'PERLU PERBAIKAN') {
+                            isPerbaikan = true;
+                        }
+                    }
+
                     let marker = document.createElement('div');
-                    marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${activeMapEditIndex === item.id ? 'bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse' : 'bg-red-600'}`;
+                    let colorClass = isPerbaikan ? "bg-red-600 animate-pulse" : "bg-emerald-500";
+                    if(activeMapEditIndex === item.id) colorClass = "bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse";
+
+                    marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${colorClass}`;
                     marker.style.left = `${item.x || 50}%`;
                     marker.style.top = `${item.y || 50}%`;
                     marker.textContent = item.id;
@@ -1892,7 +1976,6 @@
             });
         }
 
-        // FUNGSI DOWNLOAD FOTO DARI BASE64 OTOMATIS
         function downloadImage(base64Data, aparCode) {
             const link = document.createElement('a');
             link.href = base64Data;
@@ -2026,7 +2109,7 @@
 
         async function loadReportData() {
             const tbody = document.getElementById('reportTableBody');
-            tbody.innerHTML = `<tr><td colspan="10" class="p-3 text-center text-slate-500">Memuat rekap...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-500">Memuat rekap...</td></tr>`;
 
             const now = new Date();
             const todayFormatted = formatDateIndo(now);
@@ -2087,14 +2170,30 @@
 
                     tbody.innerHTML = "";
                     if(finalRecords.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="10" class="p-3 text-center text-slate-500 italic">Tidak ada data.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-500 italic">Tidak ada data.</td></tr>`;
                         return;
                     }
 
                     finalRecords.forEach((r, idx) => {
                         let waktuInputPretty = formatDateTimePretty(r[0]);
                         let aparCode = r[1] || 'APAR';
+                        let lokasiArea = r[2] || '-';
+                        
+                        let press = r[7] ? `Tekanan: <b>${r[7]}</b>` : '';
+                        let pin = r[8] ? `Pin: <b>${r[8]}</b>` : '';
+                        let hose = r[9] ? `Selang: <b>${r[9]}</b>` : '';
+                        let body = r[10] ? `Tabung: <b>${r[10]}</b>` : '';
+                        let hanger = r[11] ? `Bracket: <b>${r[11]}</b>` : '';
+                        let tag = r[12] ? `Kartu: <b>${r[12]}</b>` : '';
+
+                        let kondisiFisikArr = [press, pin, hose, body, hanger, tag].filter(item => item !== '');
+                        let kondisiFisikStr = kondisiFisikArr.length > 0 ? kondisiFisikArr.join(' | ') : 'Bagus / Standard';
+
+                        let akses = r[13] || '-';
+                        let statusKelayakan = r[14] || 'LAYAK';
                         let catatanRekomendasi = r[15] || '-';
+                        let namaPetugas = r[16] || '-';
+
                         let fotoImg = r[17] ? `<button onclick="downloadImage('${r[17]}', '${aparCode}')" class="inline-block group focus:outline-none" title="Klik untuk Download Foto"><img src="${r[17]}" class="w-16 h-16 object-cover rounded-xl border border-slate-300 mx-auto shadow-sm group-hover:scale-110 transition cursor-pointer"></button>` : '-';
 
                         tbody.innerHTML += `
@@ -2102,11 +2201,12 @@
                                 <td class="p-2.5 border-b text-center">${idx + 1}</td>
                                 <td class="p-2.5 border-b text-center">${waktuInputPretty}</td>
                                 <td class="p-2.5 border-b text-center font-bold">${aparCode}</td>
-                                <td class="p-2.5 border-b text-center">${r[2]}</td>
-                                <td class="p-2.5 border-b text-center">${r[13]}</td>
-                                <td class="p-2.5 border-b text-center"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${r[14] === 'LAYAK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r[14]}</span></td>
+                                <td class="p-2.5 border-b text-center">${lokasiArea}</td>
+                                <td class="p-2.5 border-b text-center text-[10px] leading-relaxed max-w-xs">${kondisiFisikStr}</td>
+                                <td class="p-2.5 border-b text-center">${akses}</td>
+                                <td class="p-2.5 border-b text-center"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${statusKelayakan === 'LAYAK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${statusKelayakan}</span></td>
                                 <td class="p-2.5 border-b text-center text-[10px]">${catatanRekomendasi}</td>
-                                <td class="p-2.5 border-b text-center">${r[16]}</td>
+                                <td class="p-2.5 border-b text-center">${namaPetugas}</td>
                                 <td class="p-2.5 border-b text-center">${fotoImg}</td>
                                 <td class="p-2.5 border-b text-center no-print">
                                     <div class="flex items-center justify-center gap-1.5 flex-wrap">
@@ -2117,7 +2217,7 @@
                             </tr>`;
                     });
                 }
-            } catch(e) { tbody.innerHTML = `<tr><td colspan="10" class="p-3 text-center text-red-500">Gagal memuat rekap.</td></tr>`; }
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-red-500">Gagal memuat rekap.</td></tr>`; }
         }
 
         function openManualAddAparModal() {
@@ -2195,6 +2295,16 @@
             }
         }
 
+        function checkEditRekomendasiChange(val) {
+            const customInput = document.getElementById('editRekomendasiCustom');
+            if (val === 'Lainnya') {
+                customInput.value = "";
+                customInput.focus();
+            } else {
+                customInput.value = val;
+            }
+        }
+
         function openEditModal(index) {
             const data = globalAparList[index];
             if(!data) return;
@@ -2202,9 +2312,20 @@
             document.getElementById('editCode').value = `${data[1]} - ${data[2]}`;
             document.getElementById('editStatus').value = data[14] || 'LAYAK';
             document.getElementById('editAccess').value = data[13] || 'Bebas / Tidak Terhalang';
-            if(document.getElementById('editRekomendasi')) {
-                document.getElementById('editRekomendasi').value = data[15] || "Perbaikan / Refill Tekanan (Pressure Gauge)";
+            
+            const existingNotes = data[15] || "Perbaikan / Refill Tekanan (Pressure Gauge)";
+            const selectEl = document.getElementById('editRekomendasiSelect');
+            const customInput = document.getElementById('editRekomendasiCustom');
+
+            let foundOption = Array.from(selectEl.options).some(opt => opt.value === existingNotes);
+            if(foundOption) {
+                selectEl.value = existingNotes;
+                customInput.value = existingNotes;
+            } else {
+                selectEl.value = 'Lainnya';
+                customInput.value = existingNotes;
             }
+
             document.getElementById('editPhotoFile').value = ""; 
             const previewContainer = document.getElementById('currentPhotoPreviewContainer');
             if (data[17]) {
@@ -2229,13 +2350,15 @@
                     const fileInput = document.getElementById('editPhotoFile');
                     if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
 
+                    const finalNotes = document.getElementById('editRekomendasiCustom').value.trim() || document.getElementById('editRekomendasiSelect').value;
+
                     const payload = {
                         action: "updateApar",
                         rowIndex: idx,
                         code: data[1],
                         status: document.getElementById('editStatus').value,
                         access: document.getElementById('editAccess').value,
-                        notes: document.getElementById('editRekomendasi').value,
+                        notes: finalNotes,
                         photoBase64: photoBase64
                     };
 
