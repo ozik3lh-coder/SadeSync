@@ -23,6 +23,16 @@
             max-width: 100%;
             height: auto;
         }
+        #evalTextSingle ul {
+            list-style-type: disc !important;
+            margin-left: 1.5rem !important;
+            padding-left: 0.5rem !important;
+        }
+        #evalTextSingle ol {
+            list-style-type: decimal !important;
+            margin-left: 1.5rem !important;
+            padding-left: 0.5rem !important;
+        }
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
@@ -32,6 +42,17 @@
             #printAreaQr, #printAreaQr * { visibility: visible; }
             #printAreaQr { position: absolute; left: 0; top: 0; width: 100%; background: white; }
             .no-print { display: none !important; }
+
+            /* HILANGKAN SCROLLBAR SAAT CETAK PDF / PRINT */
+            .table-container {
+                overflow: visible !important;
+                overflow-x: visible !important;
+                width: 100% !important;
+            }
+            table {
+                min-width: 100% !important;
+                width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -158,12 +179,11 @@
                 <div id="tabAparForm" class="bg-white rounded-2xl shadow-lg p-5 md:p-6 border border-slate-100">
                     <h2 class="text-sm md:text-lg font-bold text-slate-800 mb-3 border-b pb-2 flex items-center justify-between flex-wrap gap-2">
                         <span>Formulir Pengecekan APAR Bulanan</span>
-                        <span class="text-[11px] font-normal text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border">Seksi K3LH</span>
                     </h2>
                     <form id="aparForm" onsubmit="handleAparSubmit(event)" class="space-y-3 text-xs md:text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-semibold text-slate-700 mb-1">Tanggal Pengecekan *</label>
+                                <label class="block font-semibold text-slate-700 mb-1">Waktu / Tanggal Input *</label>
                                 <input type="date" id="inspectionDate" disabled required class="w-full px-3.5 py-2.5 border rounded-xl bg-slate-50 font-bold text-slate-700 shadow-sm">
                             </div>
                             <div>
@@ -270,7 +290,8 @@
                                 <h3 class="font-bold text-slate-800 text-sm">Rekapitulasi Inspeksi APAR & Evaluasi</h3>
                                 <p class="text-[11px] text-slate-500">Pilih periode laporan Bulanan atau Semesteran.</p>
                             </div>
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 flex-wrap">
+                                <button type="button" onclick="openManualAddAparModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">➕ Tambah Data</button>
                                 <button type="button" onclick="loadReportData()" class="bg-slate-900 hover:bg-black text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">Muat Ulang</button>
                                 <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">🖨️ Cetak PDF</button>
                             </div>
@@ -307,6 +328,7 @@
                             <div class="text-center flex-1 px-1">
                                 <h2 class="text-xs md:text-sm font-bold text-slate-900 leading-tight uppercase">PT KERTAS PADALARANG</h2>
                                 <p class="text-[9px] md:text-[10px] font-bold text-slate-800 uppercase">DEPARTEMEN JAMINAN KEANDALAN DAN K3LH</p>
+                                <p class="text-[8px] md:text-[9px] text-slate-600 mt-0.5">Jl. Cihaliwung No.181, Kertamulya, Kec. Padalarang, Kab. Bandung Barat, Jawa Barat 40553</p>
                             </div>
                             <div class="w-16 md:w-20 flex justify-end"><img src="LOGO-K3-TRANSPARANT.png" class="w-10 h-10 object-contain" onerror="this.style.display='none'"></div>
                         </div>
@@ -328,7 +350,6 @@
                                     <tr class="bg-slate-900 text-white">
                                         <th class="p-2.5 border-b border-slate-700">No.</th>
                                         <th class="p-2.5 border-b border-slate-700">Waktu Input</th>
-                                        <th class="p-2.5 border-b border-slate-700">Tgl Cek</th>
                                         <th class="p-2.5 border-b border-slate-700">Kode APAR</th>
                                         <th class="p-2.5 border-b border-slate-700">Lokasi Area</th>
                                         <th class="p-2.5 border-b border-slate-700">Akses</th>
@@ -339,22 +360,39 @@
                                         <th class="p-2.5 border-b border-slate-700 no-print">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="reportTableBody"><tr><td colspan="11" class="p-3 text-center text-slate-500">Memuat...</td></tr></tbody>
+                                <tbody id="reportTableBody"><tr><td colspan="10" class="p-3 text-center text-slate-500">Memuat...</td></tr></tbody>
                             </table>
                         </div>
 
-                        <div class="bg-slate-50 border rounded-xl p-3.5 space-y-1.5 text-xs text-slate-800 shadow-sm">
-                            <h4 class="font-bold uppercase tracking-wider text-slate-900 border-b pb-1">CATATAN & EVALUASI SEKSI K3LH:</h4>
-                            <div id="evalTextSingle" contenteditable="true" class="w-full bg-white border border-slate-300 p-2.5 rounded-xl text-xs text-slate-800 leading-relaxed outline-none focus:ring-2 focus:ring-red-500 min-h-[60px] shadow-inner"></div>
+                        <div class="bg-slate-50 border rounded-xl p-3.5 space-y-2 text-xs text-slate-800 shadow-sm">
+                            <div class="flex justify-between items-center border-b pb-1.5 flex-wrap gap-2">
+                                <h4 class="font-bold uppercase tracking-wider text-slate-900">CATATAN & EVALUASI SEKSI K3LH:</h4>
+                                <div class="flex items-center gap-1 no-print bg-white p-1 border rounded-lg shadow-sm">
+                                    <button type="button" onclick="formatText('bold')" class="px-2 py-1 hover:bg-slate-100 rounded font-bold" title="Bold">B</button>
+                                    <button type="button" onclick="formatText('italic')" class="px-2 py-1 hover:bg-slate-100 rounded italic" title="Italic">I</button>
+                                    <button type="button" onclick="formatText('underline')" class="px-2 py-1 hover:bg-slate-100 rounded underline" title="Underline">U</button>
+                                    <span class="text-slate-300">|</span>
+                                    <button type="button" onclick="formatText('justifyLeft')" class="px-2 py-1 hover:bg-slate-100 rounded" title="Align Left">Left</button>
+                                    <button type="button" onclick="formatText('justifyCenter')" class="px-2 py-1 hover:bg-slate-100 rounded" title="Align Center">Center</button>
+                                    <button type="button" onclick="formatText('justifyRight')" class="px-2 py-1 hover:bg-slate-100 rounded" title="Align Right">Right</button>
+                                    <button type="button" onclick="formatText('justifyFull')" class="px-2 py-1 hover:bg-slate-100 rounded" title="Justify">Justify</button>
+                                    <span class="text-slate-300">|</span>
+                                    <button type="button" onclick="formatText('insertUnorderedList')" class="px-2 py-1 hover:bg-slate-100 rounded" title="Bullet List">• List</button>
+                                </div>
+                            </div>
+                            <div id="evalTextSingle" contenteditable="true" class="w-full bg-white border border-slate-300 p-3 rounded-xl text-xs text-slate-800 leading-relaxed outline-none focus:ring-2 focus:ring-red-500 min-h-[80px] shadow-inner"></div>
                         </div>
 
+                        <!-- BAGIAN TANDA TANGAN DENGAN JARAK YANG DIPERLEBAR -->
                         <div class="pt-6 flex justify-end text-xs page-break-inside-avoid">
-                            <div class="text-center space-y-8 w-60">
-                                <div>
-                                    <p class="font-semibold text-slate-700">Padalarang, <span id="signDate"></span></p>
-                                    <p class="font-semibold text-slate-700">Hormat Kami,</p>
-                                    <p class="font-semibold text-slate-700">Seksi K3LH</p>
-                                </div>
+                            <div class="text-center w-64">
+                                <p class="font-semibold text-slate-700">Padalarang, <span id="signDate"></span></p>
+                                <p class="font-semibold text-slate-700">Hormat Kami,</p>
+                                <p class="font-semibold text-slate-700">Departemen Jaminan Keandalan dan K3LH</p>
+                                
+                                <!-- Ruang/Space Tanda Tangan -->
+                                <div class="h-20"></div>
+
                                 <div>
                                     <p class="font-bold underline text-slate-900">Dimas Andhika Yunanto</p>
                                     <p class="text-[9px] text-slate-500">Kepala Departemen</p>
@@ -366,7 +404,7 @@
 
                 <!-- MODUL PROFIL, LABEL QR & PETA (ADMIN) -->
                 <div id="tabAparQrCode" class="hidden space-y-4">
-                    <div class="flex gap-2 no-print bg-white p-3 rounded-2xl shadow-sm border overflow-x-auto">
+                    <div class="flex gap-2 no-print bg-white p-3 rounded-2xl shadow-lg border overflow-x-auto">
                         <button onclick="switchQrSubTab('table')" id="btnQrSubTable" class="bg-red-700 hover:bg-red-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-sm">📋 Master APAR</button>
                         <button onclick="switchQrSubTab('backupTable')" id="btnQrSubBackupTable" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border">📋 APAR Cadangan</button>
                         <button onclick="switchQrSubTab('cards')" id="btnQrSubCards" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border">🏷️ Cetak QR</button>
@@ -789,6 +827,53 @@
         </div>
     </div>
 
+    <!-- MODAL TAMBAH DATA MANUAL APAR -->
+    <div id="manualAddAparModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 no-print">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-3 max-h-[90vh] overflow-y-auto text-xs border border-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Tambah Data Inspeksi APAR Manual (Admin)</h3>
+            <form onsubmit="handleManualAddAparSubmit(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Kode APAR *</label>
+                        <input type="text" id="manualCode" required placeholder="APAR-001" class="w-full px-3 py-2 border rounded-xl shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Lokasi Area *</label>
+                        <input type="text" id="manualLocation" required placeholder="Lokasi..." class="w-full px-3 py-2 border rounded-xl shadow-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Status *</label>
+                        <select id="manualStatus" class="w-full px-3 py-2 border rounded-xl font-bold text-emerald-700 bg-emerald-50 shadow-sm">
+                            <option value="LAYAK">LAYAK</option>
+                            <option value="PERLU PERBAIKAN">PERLU PERBAIKAN</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Aksesibilitas *</label>
+                        <select id="manualAccess" class="w-full px-3 py-2 border rounded-xl shadow-sm">
+                            <option value="Bebas / Tidak Terhalang">Bebas</option>
+                            <option value="Terhalang Barang / Material">Terhalang</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nama Petugas *</label>
+                    <input type="text" id="manualInspector" required placeholder="Nama petugas..." class="w-full px-3 py-2 border rounded-xl shadow-sm">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Catatan / Rekomendasi</label>
+                    <input type="text" id="manualNotes" placeholder="Catatan..." class="w-full px-3 py-2 border rounded-xl shadow-sm">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="submitManualAddBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition shadow">Simpan & Tambah</button>
+                    <button type="button" onclick="closeManualAddAparModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL EDIT SPESIFIKASI APAR -->
     <div id="editQrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 no-print">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-3 text-xs border border-slate-100">
@@ -902,7 +987,6 @@
         let backupQrList = [];
         let activeMapEditIndex = null;
 
-        // Penyimpanan kredensial akun admin & karyawan serta status buka/kunci fitur
         let appCredentials = JSON.parse(localStorage.getItem('k3_app_credentials')) || {
             admin: { user: 'admin', pass: 'admin123' },
             karyawan: { user: 'karyawan', pass: 'karyawan123', featuresUnlocked: false }
@@ -925,6 +1009,11 @@
             initStatusYearOptions();
             renderPublicMapMarkers();
         });
+
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            document.getElementById('evalTextSingle').focus();
+        }
 
         function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
@@ -1064,13 +1153,6 @@
             return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} - ${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')} WIB`;
         }
 
-        function formatDatePretty(str) {
-            if (!str) return '-';
-            const d = new Date(str);
-            if (isNaN(d.getTime())) return str;
-            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-        }
-
         function setupNavigation() {
             const navContainer = document.getElementById('navButtonsContainer');
             const subTitle = document.getElementById('headerRoleSubtitle');
@@ -1181,7 +1263,6 @@
                 }
             });
 
-            // Jika akun karyawan mencoba membuka Temuan atau APD, cek apakah sudah dibuka oleh admin
             if ((modul === 'temuan' || modul === 'apd') && currentUser.role !== 'admin') {
                 let isUnlocked = appCredentials.karyawan && appCredentials.karyawan.featuresUnlocked;
                 if (!isUnlocked) {
@@ -1328,13 +1409,14 @@
             try {
                 const res = await fetch(SCRIPT_URL + "?action=apar");
                 const result = await res.json();
-                let inspectedCodesThisMonth = new Set();
+                globalAparList = result.records || [];
 
-                if (result.records) {
-                    result.records.forEach(r => {
-                        let checkDateStr = r[2] || r[1];
+                let inspectedCodesThisMonth = new Set();
+                if (globalAparList) {
+                    globalAparList.forEach(r => {
+                        let checkDateStr = r[0] || '';
                         if (checkDateStr && checkDateStr.startsWith(targetYearMonth)) {
-                            inspectedCodesThisMonth.add(r[3].trim().toLowerCase());
+                            if (r[1]) inspectedCodesThisMonth.add(r[1].trim().toLowerCase());
                         }
                     });
                 }
@@ -1568,12 +1650,16 @@
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             let isCheckedThisMonth = false;
             try {
-                const res = await fetch(SCRIPT_URL + "?action=apar");
-                const result = await res.json();
-                if(result.records) {
-                    result.records.forEach(r => {
-                        let checkDateStr = r[2] || r[1];
-                        if(checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[3].trim().toLowerCase() === item.code.toLowerCase()) {
+                let records = globalAparList;
+                if(!records || records.length === 0) {
+                    const res = await fetch(SCRIPT_URL + "?action=apar");
+                    const result = await res.json();
+                    records = result.records || [];
+                }
+                if(records) {
+                    records.forEach(r => {
+                        let checkDateStr = r[0] || '';
+                        if(checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase()) {
                             isCheckedThisMonth = true;
                         }
                     });
@@ -1817,7 +1903,6 @@
 
                 const payload = {
                     action: "apar",
-                    inspectionDate: document.getElementById('inspectionDate').value,
                     code: document.getElementById('code').value,
                     location: document.getElementById('location').value,
                     type: document.getElementById('type').value,
@@ -1931,7 +2016,7 @@
 
         async function loadReportData() {
             const tbody = document.getElementById('reportTableBody');
-            tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-500">Memuat rekap...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="p-3 text-center text-slate-500">Memuat rekap...</td></tr>`;
 
             const now = new Date();
             const todayFormatted = formatDateIndo(now);
@@ -1944,7 +2029,7 @@
                     let rawRecords = result.records;
                     const threeYearsAgoTime = new Date().setFullYear(now.getFullYear() - 3);
                     let filteredByRetention = rawRecords.filter(r => {
-                        let checkDateStr = r[2] || r[1];
+                        let checkDateStr = r[0] || '';
                         let d = new Date(checkDateStr);
                         if (isNaN(d.getTime())) return true;
                         return d.getTime() >= threeYearsAgoTime;
@@ -1958,7 +2043,7 @@
                         const selectedMonthVal = document.getElementById('filterMonth').value;
                         if (selectedMonthVal) {
                             finalRecords = filteredByRetention.filter(r => {
-                                let checkDateStr = r[2] || r[1];
+                                let checkDateStr = r[0] || '';
                                 return checkDateStr && checkDateStr.startsWith(selectedMonthVal);
                             });
                             const [yr, mth] = selectedMonthVal.split('-');
@@ -1971,7 +2056,7 @@
                         const semVal = document.getElementById('filterSemester').value;
                         const semYear = document.getElementById('filterSemesterYear').value;
                         finalRecords = filteredByRetention.filter(r => {
-                            let checkDateStr = r[2] || r[1];
+                            let checkDateStr = r[0] || '';
                             if(!checkDateStr) return false;
                             let d = new Date(checkDateStr);
                             if (d.getFullYear().toString() !== semYear) return false;
@@ -1992,42 +2077,118 @@
 
                     tbody.innerHTML = "";
                     if(finalRecords.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-500 italic">Tidak ada data.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="10" class="p-3 text-center text-slate-500 italic">Tidak ada data.</td></tr>`;
                         return;
                     }
 
                     finalRecords.forEach((r, idx) => {
-                        let waktuInputPretty = formatDateTimePretty(r[1]);
-                        let tglCekPretty = formatDatePretty(r[2]);
+                        let waktuInputPretty = formatDateTimePretty(r[0]);
                         let catatanRekomendasi = r[15] || '-';
-                        let fotoImg = r[17] ? `<a href="${r[17]}" target="_blank"><img src="${r[17]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm"></a>` : '-';
+                        let fotoImg = r[17] ? `<a href="${r[17]}" target="_blank"><img src="${r[17]}" class="w-16 h-16 object-cover rounded-xl border border-slate-300 mx-auto shadow-sm hover:scale-110 transition"></a>` : '-';
 
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-slate-50 transition">
                                 <td class="p-2.5 border-b text-center">${idx + 1}</td>
                                 <td class="p-2.5 border-b text-center">${waktuInputPretty}</td>
-                                <td class="p-2.5 border-b text-center">${tglCekPretty}</td>
-                                <td class="p-2.5 border-b text-center font-bold">${r[3]}</td>
-                                <td class="p-2.5 border-b text-center">${r[4]}</td>
+                                <td class="p-2.5 border-b text-center font-bold">${r[1]}</td>
+                                <td class="p-2.5 border-b text-center">${r[2]}</td>
                                 <td class="p-2.5 border-b text-center">${r[13]}</td>
                                 <td class="p-2.5 border-b text-center"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${r[14] === 'LAYAK' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${r[14]}</span></td>
                                 <td class="p-2.5 border-b text-center text-[10px]">${catatanRekomendasi}</td>
                                 <td class="p-2.5 border-b text-center">${r[16]}</td>
                                 <td class="p-2.5 border-b text-center">${fotoImg}</td>
                                 <td class="p-2.5 border-b text-center no-print">
-                                    <button onclick="openEditModal(${idx})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded-xl text-[10px] font-semibold transition shadow whitespace-nowrap">✏️ Edit</button>
+                                    <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                        <button onclick="openEditModal(${idx})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded-xl text-[10px] font-semibold transition shadow whitespace-nowrap">✏️ Edit</button>
+                                        <button onclick="deleteAparRecord(${idx})" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded-xl text-[10px] font-semibold transition shadow whitespace-nowrap">🗑️ Hapus</button>
+                                    </div>
                                 </td>
                             </tr>`;
                     });
                 }
-            } catch(e) { tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-red-500">Gagal memuat rekap.</td></tr>`; }
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="10" class="p-3 text-center text-red-500">Gagal memuat rekap.</td></tr>`; }
+        }
+
+        function openManualAddAparModal() {
+            document.getElementById('manualCode').value = "APAR-001";
+            document.getElementById('manualLocation').value = "Area Pabrik";
+            document.getElementById('manualStatus').value = "LAYAK";
+            document.getElementById('manualAccess').value = "Bebas / Tidak Terhalang";
+            document.getElementById('manualInspector').value = currentUser ? currentUser.name : "Admin";
+            document.getElementById('manualNotes').value = "-";
+            document.getElementById('manualAddAparModal').classList.remove('hidden');
+        }
+
+        function closeManualAddAparModal() {
+            document.getElementById('manualAddAparModal').classList.add('hidden');
+        }
+
+        async function handleManualAddAparSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitManualAddBtn');
+            btn.disabled = true; btn.textContent = "Menyimpan...";
+            try {
+                const payload = {
+                    action: "apar",
+                    code: document.getElementById('manualCode').value,
+                    location: document.getElementById('manualLocation').value,
+                    type: "Dry Chemical Powder",
+                    capacity: "6",
+                    pressureType: "Manometer",
+                    expDate: "Desember 2028",
+                    pressure: "Normal (Hijau)",
+                    pin: "Terpasang & Tersegel",
+                    hose: "Bagus / Tidak Retak",
+                    body: "Bagus / Bersih",
+                    hanger: "Kuat / Terpasang Baik",
+                    tag: "Ada & Terisi",
+                    access: document.getElementById('manualAccess').value,
+                    status: document.getElementById('manualStatus').value,
+                    notes: document.getElementById('manualNotes').value,
+                    inspector: document.getElementById('manualInspector').value,
+                    photoBase64: ""
+                };
+
+                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                alert("Data berhasil ditambahkan secara manual!");
+                closeManualAddAparModal();
+                setTimeout(loadReportData, 1500);
+            } catch(e) { alert("Gagal menambahkan data."); }
+            finally { btn.disabled = false; btn.textContent = "Simpan & Tambah"; }
+        }
+
+        async function deleteAparRecord(index) {
+            const data = globalAparList[index];
+            if(!data) return;
+            if(confirm(`Hapus data inspeksi APAR kode "${data[1]}" (${data[2]})?`)) {
+                try {
+                    const payload = {
+                        action: "deleteApar",
+                        rowIndex: index,
+                        code: data[1]
+                    };
+
+                    await fetch(SCRIPT_URL, { 
+                        method: "POST", 
+                        mode: "no-cors", 
+                        headers: { "Content-Type": "application/json" }, 
+                        body: JSON.stringify(payload) 
+                    });
+
+                    globalAparList.splice(index, 1);
+                    loadReportData();
+                    alert("Data berhasil dihapus dan disinkronkan ke server!");
+                } catch(e) {
+                    alert("Gagal menghapus data dari server.");
+                }
+            }
         }
 
         function openEditModal(index) {
             const data = globalAparList[index];
             if(!data) return;
             document.getElementById('editRowIndex').value = index;
-            document.getElementById('editCode').value = `${data[3]} - ${data[4]}`;
+            document.getElementById('editCode').value = `${data[1]} - ${data[2]}`;
             document.getElementById('editStatus').value = data[14] || 'LAYAK';
             document.getElementById('editAccess').value = data[13] || 'Bebas / Tidak Terhalang';
             if(document.getElementById('editRekomendasi')) {
@@ -2060,7 +2221,7 @@
                     const payload = {
                         action: "updateApar",
                         rowIndex: idx,
-                        code: data[3],
+                        code: data[1],
                         status: document.getElementById('editStatus').value,
                         access: document.getElementById('editAccess').value,
                         notes: document.getElementById('editRekomendasi').value,
@@ -2091,15 +2252,15 @@
 
                     tbody.innerHTML = "";
                     recs.forEach((r) => {
-                        let idTemuan = r[2] || `-`;
-                        let waktuTemuan = formatDateTimePretty(r[3] || r[1]);
-                        let pelapor = `${r[4]} (${r[5]})`;
-                        let lokasi = r[6];
-                        let statusAwal = r[9] || `Proses`;
-                        let uraianTemuan = `<b>[${r[7]}]</b><br>${r[8]}<br><span class="text-[9px] text-amber-800 font-semibold">Status: ${statusAwal}</span>`;
-                        let fotoBefore = r[10] ? `<a href="${r[10]}" target="_blank"><img src="${r[10]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm"></a>` : '-';
-                        let uraianTl = r[13] ? `<br><b>TL:</b> ${r[13]}<br><b>PIC:</b> ${r[11]}` : '<br><span class="text-slate-400 italic">Belum TL</span>';
-                        let fotoAfter = r[14] ? `<br><a href="${r[14]}" target="_blank"><img src="${r[14]}" class="w-10 h-10 object-cover rounded-lg border mx-auto mt-1 shadow-sm"></a>` : '';
+                        let idTemuan = r[1] || `-`;
+                        let waktuTemuan = formatDateTimePretty(r[0]);
+                        let pelapor = `${r[2]} (${r[3]})`;
+                        let lokasi = r[4];
+                        let statusAwal = r[7] || `Proses`;
+                        let uraianTemuan = `<b>[${r[5]}]</b><br>${r[6]}<br><span class="text-[9px] text-amber-800 font-semibold">Status: ${statusAwal}</span>`;
+                        let fotoBefore = r[8] ? `<a href="${r[8]}" target="_blank"><img src="${r[8]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm"></a>` : '-';
+                        let uraianTl = r[11] ? `<br><b>TL:</b> ${r[11]}<br><b>PIC:</b> ${r[9]}` : '<br><span class="text-slate-400 italic">Belum TL</span>';
+                        let fotoAfter = r[13] ? `<br><a href="${r[13]}" target="_blank"><img src="${r[13]}" class="w-10 h-10 object-cover rounded-lg border mx-auto mt-1 shadow-sm"></a>` : '';
 
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-slate-50 transition">
@@ -2124,7 +2285,7 @@
                     globalTemuanList = result.records;
                     select.innerHTML = `<option value="">-- Pilih ID Temuan --</option>`;
                     globalTemuanList.forEach((r) => {
-                        select.innerHTML += `<option value="${r[2]}">${r[2]} - ${r[6]}</option>`;
+                        select.innerHTML += `<option value="${r[1]}">${r[1]} - ${r[4]}</option>`;
                     });
                 }
             } catch(e) { select.innerHTML = `<option value="">Gagal memuat</option>`; }
@@ -2134,10 +2295,10 @@
             const selectedId = document.getElementById('tlTemuanSelect').value;
             const previewBox = document.getElementById('selectedTemuanPreview');
             if(!selectedId) { previewBox.classList.add('hidden'); return; }
-            const found = globalTemuanList.find(r => r[2] === selectedId);
+            const found = globalTemuanList.find(r => r[1] === selectedId);
             if(found) {
                 previewBox.classList.remove('hidden');
-                previewBox.innerHTML = `<b>Detail:</b> ${found[6]} - ${found[8]}`;
+                previewBox.innerHTML = `<b>Detail:</b> ${found[4]} - ${found[6]}`;
             }
         }
 
