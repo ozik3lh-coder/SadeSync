@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta tag ini yang membuat layar otomatis menyesuaikan ukuran HP -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PORTAL K3 TERPADU - PT KERTAS PADALARANG</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -10,6 +11,19 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
+        /* CSS Tambahan untuk Responsivitas HP */
+        body {
+            overflow-x: hidden;
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        img, canvas {
+            max-width: 100%;
+            height: auto;
+        }
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
@@ -78,7 +92,7 @@
         </main>
     </div>
 
-    <!-- MODAL POPUP LOGIN -->
+    <!-- MODAL POPUP LOGIN (Informasi Username & Password Dihilangkan) -->
     <div id="loginModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-6 relative animate-in fade-in zoom-in duration-200">
             <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
@@ -89,7 +103,7 @@
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Username *</label>
-                    <input type="text" id="loginUser" required placeholder="Contoh: admin atau karyawan" 
+                    <input type="text" id="loginUser" required placeholder="Masukkan username" 
                         class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none">
                 </div>
                 <div>
@@ -101,9 +115,6 @@
                     Masuk Sekarang
                 </button>
             </form>
-            <div class="text-[11px] text-center text-slate-400 border-t pt-3">
-                Admin: <span class="font-bold">admin</span> / <span class="font-bold">admin123</span> | Karyawan: <span class="font-bold">karyawan</span> / <span class="font-bold">12345</span>
-            </div>
         </div>
     </div>
 
@@ -144,15 +155,15 @@
 
                 <!-- TAB NAVIGASI UTAMA MODUL APAR -->
                 <div class="flex gap-2 no-print mb-4 overflow-x-auto" id="aparTabNav">
-                    <button onclick="switchAparTab('form')" id="btnAparForm" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Formulir Cek</button>
-                    <button onclick="switchAparTab('statusList')" id="btnAparStatusList" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">📋 Status Cek APAR & Cadangan</button>
-                    <button onclick="switchAparTab('report')" id="btnAparReport" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Laporan & Rekap</button>
-                    <button onclick="switchAparTab('qrcode')" id="btnAparQr" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">Profil & Label QR (1-150)</button>
+                    <button onclick="switchAparTab('form')" id="btnAparForm" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap">Formulir Cek</button>
+                    <button onclick="switchAparTab('statusList')" id="btnAparStatusList" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap">📋 Status Cek APAR & Cadangan</button>
+                    <button onclick="switchAparTab('report')" id="btnAparReport" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap">Laporan & Rekap</button>
+                    <button onclick="switchAparTab('qrcode')" id="btnAparQr" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap">Profil & Label QR (1-150)</button>
                 </div>
 
                 <!-- FORM APAR (UNTUK KARYAWAN) -->
                 <div id="tabAparForm" class="bg-white rounded-xl shadow-md p-6 border">
-                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center justify-between flex-wrap gap-2">
                         <span>Formulir Pengecekan APAR Bulanan</span>
                         <span class="text-xs font-normal text-slate-500">Departemen Jaminan Keandalan & K3LH</span>
                     </h2>
@@ -166,7 +177,7 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Kode / QR ID APAR *</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="code" required oninput="autoFillAparByCode(this.value)" placeholder="Contoh: APAR-001 atau CAD-001" class="w-full px-3 py-2 border rounded-lg text-sm">
-                                    <button type="button" onclick="startScanner()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Scan QR</button>
+                                    <button type="button" onclick="startScanner()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium transition whitespace-nowrap">Scan QR</button>
                                 </div>
                                 <p class="text-[10px] text-blue-600 font-medium mt-1">💡 Scan QR atau ketik kode APAR / APAR Cadangan untuk mengisi lokasi & spesifikasi otomatis.</p>
                             </div>
@@ -239,12 +250,12 @@
                                 <select id="statusYearSelect" onchange="loadKaryawanAparStatus()" class="px-2 py-1 text-xs font-semibold bg-white border rounded text-slate-700 outline-none">
                                 </select>
                             </div>
-                            <button type="button" onclick="loadKaryawanAparStatus()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-xs font-semibold transition">Muat Ulang Status</button>
+                            <button type="button" onclick="loadKaryawanAparStatus()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-xs font-semibold transition whitespace-nowrap">Muat Ulang Status</button>
                             <input type="text" id="searchKaryawanApar" oninput="filterKaryawanAparStatus()" placeholder="Cari Kode / Lokasi..." class="px-3 py-1.5 border rounded text-xs w-44">
                         </div>
                     </div>
-                    <div class="overflow-x-auto max-h-[600px]">
-                        <table class="w-full text-center text-xs border-collapse">
+                    <div class="table-container max-h-[600px]">
+                        <table class="w-full text-center text-xs border-collapse min-w-[600px]">
                             <thead class="sticky top-0 bg-slate-800 text-white z-10">
                                 <tr>
                                     <th class="p-2.5 border">No.</th>
@@ -269,8 +280,8 @@
                                 <p class="text-[11px] text-slate-500">Pilih periode laporan Bulanan atau Semesteran (Retensi data otomatis: 3 Tahun).</p>
                             </div>
                             <div class="flex gap-2">
-                                <button type="button" onclick="loadReportData()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition">Muat Ulang</button>
-                                <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition">🖨️ Cetak PDF</button>
+                                <button type="button" onclick="loadReportData()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap">Muat Ulang</button>
+                                <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap">🖨️ Cetak PDF</button>
                             </div>
                         </div>
 
@@ -315,14 +326,14 @@
                             <p id="reportDate" class="text-[11px] text-slate-600 font-medium"></p>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="bg-slate-50 border p-3 rounded-lg text-center"><p class="text-[11px] font-semibold">Total Unit Terinspeksi</p><p id="statTotal" class="text-2xl font-bold text-slate-800">0</p></div>
                             <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-lg text-center"><p class="text-[11px] font-semibold text-emerald-800">Kondisi Layak</p><p id="statLayak" class="text-2xl font-bold text-emerald-600">0</p></div>
                             <div class="bg-red-50 border border-red-200 p-3 rounded-lg text-center"><p class="text-[11px] font-semibold text-red-800">Perlu Perbaikan / Refill</p><p id="statPerbaikan" class="text-2xl font-bold text-red-600">0</p></div>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-center text-xs border-collapse">
+                        <div class="table-container">
+                            <table class="w-full text-center text-xs border-collapse min-w-[800px]">
                                 <thead>
                                     <tr class="bg-slate-800 text-white">
                                         <th class="p-2 border text-center">No.</th>
@@ -375,7 +386,7 @@
                     <div id="qrSubTableContainer" class="space-y-6">
                         <!-- Kotak Atas: Tabel Master -->
                         <div class="bg-white rounded-xl shadow-md p-6 border space-y-4">
-                            <div class="flex justify-between items-center border-b pb-3">
+                            <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-3">
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-base">Tabel Master Profil & Spesifikasi APAR</h3>
                                     <p class="text-xs text-slate-500">PT Kertas Padalarang — Perubahan pada tabel ini otomatis tersinkron ke Kartu Label QR & Peta Interaktif.</p>
@@ -384,8 +395,8 @@
                                     <input type="text" id="searchAparProfile" oninput="filterAparTableProfile()" placeholder="Cari Kode / Lokasi..." class="px-3 py-1.5 border rounded text-xs w-52">
                                 </div>
                             </div>
-                            <div class="overflow-x-auto max-h-[500px]">
-                                <table class="w-full text-center text-xs border-collapse">
+                            <div class="table-container max-h-[500px]">
+                                <table class="w-full text-center text-xs border-collapse min-w-[700px]">
                                     <thead class="sticky top-0 bg-slate-800 text-white z-10">
                                         <tr>
                                             <th class="p-2.5 border">No.</th>
@@ -415,8 +426,8 @@
                                     <select id="mapItemSelect" onchange="focusMapItem(this.value)" class="px-3 py-1.5 border rounded text-xs font-semibold bg-slate-50">
                                         <option value="">-- Pilih Cepat APAR --</option>
                                     </select>
-                                    <button type="button" onclick="deleteActiveMarker()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">🗑️ Hapus Titik APAR</button>
-                                    <button type="button" onclick="saveMapPositions()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">💾 Simpan Posisi Peta</button>
+                                    <button type="button" onclick="deleteActiveMarker()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap">🗑️ Hapus Titik APAR</button>
+                                    <button type="button" onclick="saveMapPositions()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap">💾 Simpan Posisi Peta</button>
                                 </div>
                             </div>
 
@@ -434,18 +445,18 @@
                     <!-- SUBTAB KHUSUS: TABEL MASTER APAR CADANGAN -->
                     <div id="qrSubBackupTableContainer" class="hidden space-y-6">
                         <div class="bg-white rounded-xl shadow-md p-6 border space-y-4">
-                            <div class="flex justify-between items-center border-b pb-3">
+                            <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-3">
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-base">Tabel Master Profil & Spesifikasi APAR Cadangan</h3>
                                     <p class="text-xs text-slate-500">APAR Cadangan ini khusus tersinkron ke Kartu & Cetak QR Code (Tidak masuk ke peta denah layout).</p>
                                 </div>
-                                <div class="flex gap-2 items-center">
+                                <div class="flex gap-2 items-center flex-wrap">
                                     <input type="text" id="searchBackupAparProfile" oninput="filterBackupAparTableProfile()" placeholder="Cari Kode / Lokasi Cadangan..." class="px-3 py-1.5 border rounded text-xs w-52">
-                                    <button type="button" onclick="openAddBackupModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition">➕ Tambah APAR Cadangan</button>
+                                    <button type="button" onclick="openAddBackupModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition whitespace-nowrap">➕ Tambah APAR Cadangan</button>
                                 </div>
                             </div>
-                            <div class="overflow-x-auto max-h-[500px]">
-                                <table class="w-full text-center text-xs border-collapse">
+                            <div class="table-container max-h-[500px]">
+                                <table class="w-full text-center text-xs border-collapse min-w-[700px]">
                                     <thead class="sticky top-0 bg-slate-800 text-white z-10">
                                         <tr>
                                             <th class="p-2.5 border">No.</th>
@@ -467,12 +478,12 @@
 
                     <!-- SUBTAB 2: KARTU QR (APAR UTAMA 1-150 & APAR CADANGAN) -->
                     <div id="qrSubCardsContainer" class="hidden space-y-4">
-                        <div class="bg-white p-4 rounded-xl shadow-md border flex justify-between items-center no-print">
+                        <div class="bg-white p-4 rounded-xl shadow-md border flex flex-wrap justify-between items-center gap-2 no-print">
                             <div>
                                 <h3 class="font-bold text-slate-800 text-sm">Cetak Kartu Label QR Code APAR (Utama 1-150 & APAR Cadangan)</h3>
                                 <p class="text-[11px] text-slate-500">Data otomatis merujuk pada perubahan terbaru di Tabel Master Profil Utama & Cadangan.</p>
                             </div>
-                            <button type="button" onclick="printQrCodes()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition">🖨️ Cetak Semua QR Code</button>
+                            <button type="button" onclick="printQrCodes()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition whitespace-nowrap">🖨️ Cetak Semua QR Code</button>
                         </div>
 
                         <div id="printAreaQr" class="bg-white rounded-xl shadow-md p-6 border">
@@ -597,11 +608,11 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center no-print bg-white p-4 rounded-xl shadow-md border">
+                    <div class="flex justify-between items-center gap-2 no-print bg-white p-4 rounded-xl shadow-md border flex-wrap">
                         <h3 class="font-bold text-slate-800 text-sm">Laporan Terpadu Temuan & Tindak Lanjut K3</h3>
                         <div class="flex gap-2">
-                            <button type="button" onclick="loadTemuanData()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition">Muat Ulang</button>
-                            <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition">🖨️ Cetak PDF</button>
+                            <button type="button" onclick="loadTemuanData()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap">Muat Ulang</button>
+                            <button type="button" onclick="window.print()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap">🖨️ Cetak PDF</button>
                         </div>
                     </div>
 
@@ -615,8 +626,8 @@
                             <div class="w-24 flex justify-end"><img src="LOGO-K3-TRANSPARANT.png" class="w-12 h-12 object-contain" onerror="this.style.display='none'"></div>
                         </div>
                         <div class="text-center space-y-1"><h3 class="text-base font-bold uppercase text-slate-900">LAPORAN TERPADU TEMUAN & TINDAK LANJUT K3</h3></div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-center text-xs border-collapse">
+                        <div class="table-container">
+                            <table class="w-full text-center text-xs border-collapse min-w-[700px]">
                                 <thead>
                                     <tr class="bg-slate-800 text-white">
                                         <th class="p-2 border text-center">ID / Waktu</th>
@@ -639,11 +650,11 @@
             <!-- MODUL 3: STOK & PERMINTAAN APD -->
             <div id="modulApd" class="hidden space-y-6">
                 <div class="bg-white rounded-xl shadow-md p-6 border space-y-4" id="adminApdStockSection">
-                    <div class="flex justify-between items-center border-b pb-2">
+                    <div class="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
                         <h2 class="text-lg font-bold text-slate-800">Manajemen & Dashboard Stok APD PT Kertas Padalarang</h2>
                         <button type="button" onclick="saveApdStockChanges()" id="saveStockBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Simpan Perubahan Stok</button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="apdStockGrid"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="apdStockGrid"></div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-md p-6 border" id="apdFormContainer">
@@ -721,7 +732,7 @@
                     <label class="block font-semibold text-slate-700 mb-1">Kode APAR</label>
                     <input type="text" id="editCode" disabled class="w-full px-3 py-2 border rounded bg-slate-100 font-bold">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Status Kelayakan Evaluasi</label>
                         <select id="editStatus" class="w-full px-3 py-2 border rounded font-bold text-emerald-700 bg-emerald-50">
@@ -1167,27 +1178,27 @@
             const btnQr = document.getElementById('btnAparQr');
 
             [btnForm, btnStatus, btnReport, btnQr].forEach(btn => {
-                if(btn) btn.className = "bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                if(btn) btn.className = "bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap";
             });
 
             if (tab === 'form') {
                 if(currentUser.role === 'admin') return;
                 document.getElementById('tabAparForm').classList.remove('hidden');
-                if(btnForm) btnForm.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                if(btnForm) btnForm.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap";
             } else if(tab === 'statusList') {
                 if(currentUser.role === 'admin') return;
                 document.getElementById('tabAparStatusList').classList.remove('hidden');
-                if(btnStatus) btnStatus.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                if(btnStatus) btnStatus.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap";
                 loadKaryawanAparStatus();
             } else if(tab === 'report') {
                 if(currentUser.role === 'peserta') return;
                 document.getElementById('tabAparReport').classList.remove('hidden');
-                if(btnReport) btnReport.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                if(btnReport) btnReport.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap";
                 loadReportData();
             } else if(tab === 'qrcode') {
                 if(currentUser.role === 'peserta') return;
                 document.getElementById('tabAparQrCode').classList.remove('hidden');
-                if(btnQr) btnQr.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                if(btnQr) btnQr.className = "bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap";
                 switchQrSubTab('table');
             }
         }
@@ -1246,7 +1257,6 @@
                     });
                 }
 
-                // 🌟 Menggabungkan APAR Utama (1-150) dan APAR Cadangan
                 let combinedCheckList = [];
                 qrList.forEach(item => combinedCheckList.push({ ...item, isBackup: false }));
                 backupQrList.forEach((item, index) => {
@@ -1311,7 +1321,7 @@
                         <td class="p-2 border text-center font-semibold text-blue-800">${item.pressureType || 'Manometer'}</td>
                         <td class="p-2 border text-center font-bold text-red-600">${item.expDate || 'Desember 2028'}</td>
                         <td class="p-2 border text-center no-print">
-                            <button type="button" onclick="openQrEditModal(${realIndex})" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-[11px] font-semibold transition">✏️ Edit</button>
+                            <button type="button" onclick="openQrEditModal(${realIndex})" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-[11px] font-semibold transition whitespace-nowrap">✏️ Edit</button>
                         </td>
                     </tr>
                 `;
@@ -1343,8 +1353,8 @@
                         <td class="p-2 border text-center font-semibold text-blue-800">${item.pressureType || 'Manometer'}</td>
                         <td class="p-2 border text-center font-bold text-red-600">${item.expDate || 'Desember 2029'}</td>
                         <td class="p-2 border text-center no-print space-x-1">
-                            <button type="button" onclick="openEditBackupModal(${index})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">✏️ Edit</button>
-                            <button type="button" onclick="deleteBackupApar(${index})" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">🗑️ Hapus</button>
+                            <button type="button" onclick="openEditBackupModal(${index})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition whitespace-nowrap">✏️ Edit</button>
+                            <button type="button" onclick="deleteBackupApar(${index})" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition whitespace-nowrap">🗑️ Hapus</button>
                         </td>
                     </tr>
                 `;
@@ -1927,7 +1937,7 @@
                                 <td class="p-2 border text-center">${r[16]}</td>
                                 <td class="p-2 border text-center">${fotoImg}</td>
                                 <td class="p-2 border text-center no-print">
-                                    <button onclick="openEditModal(${idx})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">✏️ Edit Evaluasi</button>
+                                    <button onclick="openEditModal(${idx})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition whitespace-nowrap">✏️ Edit Evaluasi</button>
                                 </td>
                             </tr>`;
                     });
