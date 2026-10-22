@@ -50,7 +50,6 @@
                     </div>
                     <div>
                         <h1 class="text-xs md:text-base font-extrabold tracking-wide leading-tight">PORTAL K3 TERPADU</h1>
-                        <!-- Teks "— Peta & Monitoring APAR" dihapus sesuai permintaan -->
                         <p class="text-[9px] md:text-[10px] text-red-200 font-medium">PT Kertas Padalarang</p>
                     </div>
                 </div>
@@ -81,7 +80,7 @@
                     </div>
                 </div>
                 <div class="text-[10px] md:text-[11px] text-slate-500 flex flex-wrap gap-2 items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat popup spesifikasi lengkap, tanggal terakhir cek & status kelayakan[cite: 6, 7].</span>
+                    <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat popup spesifikasi lengkap, tanggal terakhir cek & status kelayakan.</span>
                     <div class="flex items-center gap-3 flex-wrap">
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span> Layak (Sudah Dicek)</span>
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shadow-sm"></span> Belum Dicek</span>
@@ -162,7 +161,7 @@
                     <h2 class="text-sm md:text-lg font-bold text-slate-800 mb-3 border-b pb-2 flex items-center justify-between flex-wrap gap-2">
                         <span>Formulir Pengecekan APAR Bulanan</span>
                     </h2>
-                    <form id="aparForm" onsubmit="handleAparSubmit(event)" class="space-y-3 text-xs md:text-sm">
+                    <form id="aparFormElem" onsubmit="handleAparSubmit(event)" class="space-y-3 text-xs md:text-sm">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">Waktu / Tanggal Input *</label>
@@ -204,13 +203,13 @@
                         <div class="border-t pt-3 mt-3">
                             <h3 class="text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-wider">Parameter Pemeriksaan Fisik APAR</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Pressure Gauge</label><select id="pressure" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Normal">Normal</option><option value="Low Pressure">Low Pressure</option><option value="Over Pressure">Over Pressure</option></select></div>
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Pin & Segel</label><select id="pin" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Terpasang & Tersegel">Terpasang & Tersegel</option><option value="Putus / Hilang">Putus / Hilang</option></select></div>
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Selang & Nozzle</label><select id="hose" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bagus / Tidak Retak">Bagus</option><option value="Retak / Sumbat">Retak / Sumbat</option></select></div>
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Kondisi Tabung</label><select id="body" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bagus / Bersih">Bagus / Bersih</option><option value="Penyok / Berkarat">Penyok / Berkarat</option></select></div>
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Hanger / Bracket</label><select id="hanger" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Kuat / Terpasang Baik">Kuat</option><option value="Longgar / Rusak">Longgar / Rusak</option></select></div>
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Stiker Kartu Kendali</label><select id="tag" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Ada & Terisi">Ada & Terisi</option><option value="Tidak Ada / Kosong">Kosong</option></select></div>
-                                <div class="md:col-span-2"><label class="block text-[11px] font-semibold text-slate-600 mb-1">Aksesibilitas APAR</label><select id="access" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bebas / Tidak Terhalang">Bebas / Tidak Terhalang</option><option value="Terhalang Barang / Material">Terhalang Barang</option></select></div>
+                                <div><label class="block font-[11px] font-semibold text-slate-600 mb-1">Pressure Gauge</label><select id="pressure" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Normal">Normal</option><option value="Low Pressure">Low Pressure</option><option value="Over Pressure">Over Pressure</option></select></div>
+                                <div><label class="block font-[11px] font-semibold text-slate-600 mb-1">Pin & Segel</label><select id="pin" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Terpasang & Tersegel">Terpasang & Tersegel</option><option value="Putus / Hilang">Putus / Hilang</option></select></div>
+                                <div><label class="block font-[11px] font-semibold text-slate-600 mb-1">Selang & Nozzle</label><select id="hose" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bagus / Tidak Retak">Bagus</option><option value="Retak / Sumbat">Retak / Sumbat</option></select></div>
+                                <div><label class="block font-[11px] font-semibold text-slate-600 mb-1">Kondisi Tabung</label><select id="body" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bagus / Bersih">Bagus / Bersih</option><option value="Penyok / Berkarat">Penyok / Berkarat</option></select></div>
+                                <div><label class="block font-[11px] font-semibold text-slate-600 mb-1">Hanger / Bracket</label><select id="hanger" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Kuat / Terpasang Baik">Kuat</option><option value="Longgar / Rusak">Longgar / Rusak</option></select></div>
+                                <div><label class="block font-[11px] font-semibold text-slate-600 mb-1">Stiker Kartu Kendali</label><select id="tag" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Ada & Terisi">Ada & Terisi</option><option value="Tidak Ada / Kosong">Kosong</option></select></div>
+                                <div class="md:col-span-2"><label class="block font-[11px] font-semibold text-slate-600 mb-1">Aksesibilitas APAR</label><select id="access" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bebas / Tidak Terhalang">Bebas / Tidak Terhalang</option><option value="Terhalang Barang / Material">Terhalang Barang</option></select></div>
                             </div>
                         </div>
                         <div><label class="block font-semibold text-slate-700 mb-1">Status Kelayakan *</label><select id="status" class="w-full px-3.5 py-2.5 font-bold border rounded-xl bg-emerald-50 text-emerald-700 shadow-sm"><option value="LAYAK">LAYAK</option><option value="PERLU PERBAIKAN">PERLU PERBAIKAN</option></select></div>
@@ -464,6 +463,7 @@
                                         <option value="">-- Pilih Cepat APAR --</option>
                                     </select>
                                     <button type="button" onclick="addNewAparMarker()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">➕ Tambah Titik APAR</button>
+                                    <button type="button" id="toggleMultiSelectBtn" onclick="toggleMultiSelectMode()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">☑️ Pilih Titik</button>
                                     <button type="button" onclick="deleteActiveMarker()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">🗑️ Hapus Titik</button>
                                     <button type="button" onclick="saveMapPositions()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">💾 Simpan Peta</button>
                                 </div>
@@ -774,7 +774,6 @@
             </div>
             
             <div class="space-y-2 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-2xl border shadow-inner">
-                <!-- Keterangan Exp dipindahkan ke atas sebelum bagian Media -->
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Exp:</span> <span class="font-bold text-red-600" id="modalAparExpDate">Desember 2028</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Media:</span> <span class="font-bold text-slate-900" id="modalAparTypeText">Powder</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kapasitas:</span> <span class="font-bold text-slate-900" id="modalAparCapText">6 Kg</span></div>
@@ -1014,6 +1013,8 @@
         let backupQrList = [];
         let activeMapEditIndex = null;
         let deletedAparHistoryStack = [];
+        let isMultiSelectMode = false;
+        let selectedMarkerIdsForDeletion = new Set();
 
         let appCredentials = JSON.parse(localStorage.getItem('k3_app_credentials')) || {
             admin: { user: 'admin', pass: 'admin123' },
@@ -1543,11 +1544,13 @@
         function renderAparProfileTable(dataArray) {
             const tbody = document.getElementById('aparProfileTableBody');
             tbody.innerHTML = "";
-            dataArray.forEach((item) => {
+            // Hanya tampilkan yang tidak dihapus (x >= 0 dan y >= 0)
+            const activeData = dataArray.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
+            activeData.forEach((item, index) => {
                 let realIndex = qrList.findIndex(q => q.id === item.id);
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-2.5 border-b text-center">${item.id}</td>
+                        <td class="p-2.5 border-b text-center">${index + 1}</td>
                         <td class="p-2.5 border-b text-center font-bold text-slate-900">${item.code}</td>
                         <td class="p-2.5 border-b text-center font-semibold text-red-700">${item.location}</td>
                         <td class="p-2.5 border-b text-center">${item.type}</td>
@@ -1669,7 +1672,8 @@
             const container = document.getElementById('qrGridContainer');
             container.innerHTML = "";
             let combinedList = [];
-            qrList.forEach(item => combinedList.push({ ...item, isBackup: false }));
+            // Hanya render QR code untuk APAR aktif (yang tidak dihapus dari peta)
+            qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0)).forEach(item => combinedList.push({ ...item, isBackup: false }));
             backupQrList.forEach(item => combinedList.push({ ...item, isBackup: true }));
 
             combinedList.forEach((item, idx) => {
@@ -1784,7 +1788,6 @@
 
             lastCheckEl.textContent = lastCheckDatePretty;
 
-            // Logika warna nomor APAR dan Status Bulan Ini
             if(isCheckedThisMonth) {
                 badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">🟢 Sudah Dicek Bulan Ini</span>`;
                 
@@ -1816,9 +1819,11 @@
             const now = new Date();
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-            qrList.forEach(item => {
+            // Hanya render marker yang aktif (x >= 0 dan y >= 0)
+            const activeMarkers = qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
+
+            activeMarkers.forEach(item => {
                 if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
-                if(item.x < 0 || item.y < 0) return;
 
                 let isCheckedThisMonth = false;
                 let isPerbaikan = false;
@@ -1872,9 +1877,10 @@
             const yVal = document.getElementById('statusYearSelect') ? document.getElementById('statusYearSelect').value : new Date().getFullYear();
             const targetYearMonth = `${yVal}-${mVal}`;
 
-            qrList.forEach(item => {
+            const activeMarkers = qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
+
+            activeMarkers.forEach(item => {
                 if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
-                if(item.x < 0 || item.y < 0) return;
 
                 let isCheckedThisPeriod = false;
                 let isPerbaikan = false;
@@ -1916,6 +1922,22 @@
             renderStatusMapMarkers(q);
         }
 
+        function toggleMultiSelectMode() {
+            isMultiSelectMode = !isMultiSelectMode;
+            const btn = document.getElementById('toggleMultiSelectBtn');
+            if (isMultiSelectMode) {
+                btn.className = "bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap animate-pulse";
+                btn.textContent = "❌ Batal Pilih";
+                selectedMarkerIdsForDeletion.clear();
+                alert("Mode Pilih Titik Aktif!\n\nKlik pada titik-titik APAR di peta yang ingin dihapus sekaligus, lalu klik tombol '🗑️ Hapus Titik' untuk menghapus semuanya secara bersamaan.");
+            } else {
+                btn.className = "bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap";
+                btn.textContent = "☑️ Pilih Titik";
+                selectedMarkerIdsForDeletion.clear();
+            }
+            renderAdminMapMarkers();
+        }
+
         function renderAdminMapMarkers() {
             const layer = document.getElementById('adminMarkersLayer');
             const select = document.getElementById('mapItemSelect');
@@ -1927,55 +1949,71 @@
             const now = new Date();
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-            qrList.forEach(item => {
-                if(item.x >= 0 && item.y >= 0) {
-                    select.innerHTML += `<option value="${item.id}">${item.code} - ${item.location}</option>`;
+            // Render hanya marker yang aktif (x >= 0 dan y >= 0)
+            const activeMarkers = qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
 
-                    let isCheckedThisMonth = false;
-                    let isPerbaikan = false;
+            activeMarkers.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.code} - ${item.location}</option>`;
 
-                    if(globalAparList) {
-                        let monthMatchingRecords = globalAparList.filter(r => {
-                            let checkDateStr = r[0] || '';
-                            return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
-                        });
-                        if(monthMatchingRecords.length > 0) {
-                            isCheckedThisMonth = true;
-                            let latestRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
-                            if(latestRecord[14] === 'PERLU PERBAIKAN') isPerbaikan = true;
+                let isCheckedThisMonth = false;
+                let isPerbaikan = false;
+
+                if(globalAparList) {
+                    let monthMatchingRecords = globalAparList.filter(r => {
+                        let checkDateStr = r[0] || '';
+                        return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
+                    });
+                    if(monthMatchingRecords.length > 0) {
+                        isCheckedThisMonth = true;
+                        let latestRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
+                        if(latestRecord[14] === 'PERLU PERBAIKAN') isPerbaikan = true;
+                    }
+                }
+
+                let marker = document.createElement('div');
+                let colorClass = "";
+                let selectionBadge = "";
+
+                if (isMultiSelectMode && selectedMarkerIdsForDeletion.has(item.id)) {
+                    colorClass = "bg-purple-600 text-white ring-4 ring-purple-300 scale-125 z-40";
+                    selectionBadge = `<span class="absolute -top-1.5 -right-1.5 bg-white text-purple-700 rounded-full w-4 h-4 text-[9px] font-extrabold flex items-center justify-center shadow border border-purple-600">✓</span>`;
+                } else if(activeMapEditIndex === item.id) {
+                    colorClass = "bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse text-white";
+                } else if(isPerbaikan) {
+                    colorClass = "bg-red-600 text-white font-extrabold shadow-[0_0_12px_rgba(239,68,68,1)] animate-fast-blink";
+                } else if(isCheckedThisMonth) {
+                    colorClass = "bg-emerald-500 text-white";
+                } else {
+                    colorClass = "bg-amber-400 text-slate-900";
+                }
+
+                marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${colorClass}`;
+                marker.style.left = `${item.x || 50}%`;
+                marker.style.top = `${item.y || 50}%`;
+                marker.innerHTML = `${item.id}${selectionBadge}`;
+                
+                marker.onclick = (e) => {
+                    e.stopPropagation();
+                    if (isMultiSelectMode) {
+                        if (selectedMarkerIdsForDeletion.has(item.id)) {
+                            selectedMarkerIdsForDeletion.delete(item.id);
+                        } else {
+                            selectedMarkerIdsForDeletion.add(item.id);
                         }
-                    }
-
-                    let marker = document.createElement('div');
-                    let colorClass = "";
-                    
-                    if(activeMapEditIndex === item.id) {
-                        colorClass = "bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse text-white";
-                    } else if(isPerbaikan) {
-                        colorClass = "bg-red-600 text-white font-extrabold shadow-[0_0_12px_rgba(239,68,68,1)] animate-fast-blink";
-                    } else if(isCheckedThisMonth) {
-                        colorClass = "bg-emerald-500 text-white";
+                        renderAdminMapMarkers();
                     } else {
-                        colorClass = "bg-amber-400 text-slate-900";
-                    }
-
-                    marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${colorClass}`;
-                    marker.style.left = `${item.x || 50}%`;
-                    marker.style.top = `${item.y || 50}%`;
-                    marker.textContent = item.id;
-                    marker.onclick = (e) => {
-                        e.stopPropagation();
                         activeMapEditIndex = item.id;
                         select.value = item.id;
                         renderAdminMapMarkers();
                         openAparDetailPopup(item.code);
-                    };
-                    layer.appendChild(marker);
-                }
+                    }
+                };
+                layer.appendChild(marker);
             });
 
             const canvas = document.getElementById('adminMapCanvas');
             canvas.onclick = (e) => {
+                if(isMultiSelectMode) return;
                 if(!activeMapEditIndex) return;
                 const rect = canvas.getBoundingClientRect();
                 const xClick = e.clientX - rect.left;
@@ -2029,21 +2067,48 @@
         }
 
         function deleteActiveMarker() {
-            if(!activeMapEditIndex) { alert("Pilih titik APAR terlebih dahulu."); return; }
-            if(confirm(`Hapus titik penempatan APAR ID #${activeMapEditIndex}?`)) {
-                let target = qrList.find(q => q.id === activeMapEditIndex);
-                if(target) {
-                    target.x = -10; target.y = -10;
+            if (isMultiSelectMode) {
+                if (selectedMarkerIdsForDeletion.size === 0) {
+                    alert("Belum ada titik yang dipilih untuk dihapus. Klik titik-titik pada peta terlebih dahulu.");
+                    return;
+                }
+                if (confirm(`Yakin ingin menghapus ${selectedMarkerIdsForDeletion.size} titik APAR yang dipilih sekaligus?`)) {
+                    selectedMarkerIdsForDeletion.forEach(id => {
+                        let target = qrList.find(q => q.id === id);
+                        if(target) {
+                            // Tandai koordinat negatif agar terhapus/tersembunyi dari peta, tabel master, dan QR code
+                            target.x = -10; 
+                            target.y = -10;
+                        }
+                    });
                     localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
-                    activeMapEditIndex = null;
+                    selectedMarkerIdsForDeletion.clear();
+                    toggleMultiSelectMode(); 
+                    renderAparProfileTable(qrList);
                     renderAdminMapMarkers();
+                    alert("Titik-titik APAR yang dipilih berhasil dihapus dan disinkronkan ke Master & QR Code!");
+                }
+            } else {
+                if(!activeMapEditIndex) { alert("Pilih titik APAR terlebih dahulu atau aktifkan mode '☑️ Pilih Titik' untuk hapus banyak sekaligus."); return; }
+                if(confirm(`Hapus titik penempatan APAR ID #${activeMapEditIndex}?`)) {
+                    let target = qrList.find(q => q.id === activeMapEditIndex);
+                    if(target) {
+                        // Sinkronisasi penuh: set koordinat negatif agar otomatis hilang dari Peta, Tabel Master, dan Cetak QR Code
+                        target.x = -10; 
+                        target.y = -10;
+                        localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
+                        activeMapEditIndex = null;
+                        renderAparProfileTable(qrList);
+                        renderAdminMapMarkers();
+                        alert("Titik APAR berhasil dihapus dan disinkronkan ke Master Profil & QR Code!");
+                    }
                 }
             }
         }
 
         function saveMapPositions() {
             localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
-            alert("Posisi Peta APAR berhasil disimpan!");
+            alert("Posisi Peta APAR berhasil disimpan dan disinkronkan!");
         }
 
         function openQrEditModal(index) {
@@ -2180,7 +2245,7 @@
 
                 await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Data Inspeksi APAR berhasil disimpan!");
-                document.getElementById('aparForm').reset();
+                document.getElementById('aparFormElem').reset();
                 setAutomaticDates();
                 fetchAparDataAndRenderMaps();
             } catch(e) { alert("Gagal menyimpan data."); }
@@ -2432,7 +2497,6 @@
             finally { btn.disabled = false; btn.textContent = "Simpan & Tambah"; }
         }
 
-        // FUNGSI HAPUS REKAP LAPORAN (MENGGUNAKAN NO-CORS AGAR LANGSUNG TEMBUS KE SPREADSHEET)
         async function deleteAparRecord(index) {
             const data = globalAparList[index];
             if(!data) return;
