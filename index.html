@@ -10,29 +10,18 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body {
-            overflow-x: hidden;
-            font-size: 14px;
+        body { overflow-x: hidden; font-size: 14px; }
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        img, canvas { max-width: 100%; height: auto; }
+        #evalTextSingle ul { list-style-type: disc !important; margin-left: 1.5rem !important; padding-left: 0.5rem !important; }
+        #evalTextSingle ol { list-style-type: decimal !important; margin-left: 1.5rem !important; padding-left: 0.5rem !important; }
+        
+        @keyframes fastBlink {
+            0%, 100% { opacity: 1; transform: scale(1.15); }
+            50% { opacity: 0.2; transform: scale(0.9); }
         }
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        img, canvas {
-            max-width: 100%;
-            height: auto;
-        }
-        #evalTextSingle ul {
-            list-style-type: disc !important;
-            margin-left: 1.5rem !important;
-            padding-left: 0.5rem !important;
-        }
-        #evalTextSingle ol {
-            list-style-type: decimal !important;
-            margin-left: 1.5rem !important;
-            padding-left: 0.5rem !important;
-        }
+        .animate-fast-blink { animation: fastBlink 0.4s infinite ease-in-out; }
+
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
@@ -42,17 +31,8 @@
             #printAreaQr, #printAreaQr * { visibility: visible; }
             #printAreaQr { position: absolute; left: 0; top: 0; width: 100%; background: white; }
             .no-print { display: none !important; }
-
-            /* HILANGKAN SCROLLBAR SAAT CETAK PDF / PRINT */
-            .table-container {
-                overflow: visible !important;
-                overflow-x: visible !important;
-                width: 100% !important;
-            }
-            table {
-                min-width: 100% !important;
-                width: 100% !important;
-            }
+            .table-container { overflow: visible !important; width: 100% !important; }
+            table { min-width: 100% !important; width: 100% !important; }
         }
     </style>
 </head>
@@ -70,7 +50,8 @@
                     </div>
                     <div>
                         <h1 class="text-xs md:text-base font-extrabold tracking-wide leading-tight">PORTAL K3 TERPADU</h1>
-                        <p class="text-[9px] md:text-[10px] text-red-200 font-medium">PT Kertas Padalarang — Peta & Monitoring APAR</p>
+                        <!-- Teks "— Peta & Monitoring APAR" dihapus sesuai permintaan -->
+                        <p class="text-[9px] md:text-[10px] text-red-200 font-medium">PT Kertas Padalarang</p>
                     </div>
                 </div>
                 <button onclick="openLoginModal()" class="bg-white text-red-700 hover:bg-red-50 font-bold px-3.5 py-2 rounded-xl text-xs shadow-md transition-all duration-200 transform hover:scale-105 flex items-center gap-1.5 whitespace-nowrap">
@@ -100,10 +81,11 @@
                     </div>
                 </div>
                 <div class="text-[10px] md:text-[11px] text-slate-500 flex flex-wrap gap-2 items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat popup spesifikasi lengkap & status kelayakan.</span>
-                    <div class="flex items-center gap-3">
-                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span> Layak</span>
-                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block animate-pulse shadow-sm"></span> Perlu Perbaikan</span>
+                    <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat popup spesifikasi lengkap, tanggal terakhir cek & status kelayakan[cite: 6, 7].</span>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span> Layak (Sudah Dicek)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shadow-sm"></span> Belum Dicek</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block animate-fast-blink shadow-sm"></span> Perlu Perbaikan</span>
                     </div>
                 </div>
             </div>
@@ -122,13 +104,11 @@
             <form onsubmit="handleLogin(event)" class="space-y-3 text-xs pt-1">
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Username *</label>
-                    <input type="text" id="loginUser" required placeholder="Masukkan username" 
-                        class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
+                    <input type="text" id="loginUser" required placeholder="Masukkan username" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Password *</label>
-                    <input type="password" id="loginPass" required placeholder="••••••••" 
-                        class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
+                    <input type="password" id="loginPass" required placeholder="••••••••" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
                 </div>
                 <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 rounded-xl text-xs md:text-sm transition-all shadow-md transform hover:scale-[1.01]">
                     Masuk Sekarang
@@ -154,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- NAVIGASI UTAMA -->
                 <div class="flex items-center gap-1.5 shrink-0 bg-red-950/40 p-1.5 rounded-2xl border border-red-600/30 shadow-inner" id="navButtonsContainer"></div>
             </div>
         </header>
@@ -225,7 +204,7 @@
                         <div class="border-t pt-3 mt-3">
                             <h3 class="text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-wider">Parameter Pemeriksaan Fisik APAR</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Pressure Gauge</label><select id="pressure" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Normal (Hijau)">Normal (Hijau)</option><option value="Low Pressure">Low Pressure</option><option value="Over Pressure">Over Pressure</option></select></div>
+                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Pressure Gauge</label><select id="pressure" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Normal">Normal</option><option value="Low Pressure">Low Pressure</option><option value="Over Pressure">Over Pressure</option></select></div>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Pin & Segel</label><select id="pin" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Terpasang & Tersegel">Terpasang & Tersegel</option><option value="Putus / Hilang">Putus / Hilang</option></select></div>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Selang & Nozzle</label><select id="hose" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bagus / Tidak Retak">Bagus</option><option value="Retak / Sumbat">Retak / Sumbat</option></select></div>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Kondisi Tabung</label><select id="body" class="w-full px-3 py-2 border rounded-xl shadow-sm bg-slate-50"><option value="Bagus / Bersih">Bagus / Bersih</option><option value="Penyok / Berkarat">Penyok / Berkarat</option></select></div>
@@ -240,48 +219,80 @@
                         <div>
                             <label class="block font-semibold text-slate-700 mb-1">Dokumentasi Foto APAR</label>
                             <input type="file" id="photoFile" accept="image/*" capture="environment" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-red-50 file:text-red-700 font-semibold file:cursor-pointer hover:file:bg-red-100 border rounded-xl p-1 bg-slate-50">
-                            <p class="text-[10px] text-amber-700 font-semibold mt-1">⚠️ Foto di-upload jika terdapat kondisi tidak sesuai (Perlu Perbaikan).</p>
+                            <p class="text-[10px] text-amber-700 font-semibold mt-1">⚠️ Foto di-upload jika terdapat kondisi tidak sesuai (Perlu Perbaikan) atau kondisi APAR yang sudah diperbaiki.</p>
                         </div>
 
                         <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-md transition transform hover:scale-[1.01]">Kirim & Simpan</button>
                     </form>
                 </div>
 
-                <!-- TABEL STATUS CEK APAR & CADANGAN -->
-                <div id="tabAparStatusList" class="hidden bg-white rounded-2xl shadow-lg p-5 md:p-6 border border-slate-100 space-y-3">
-                    <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-3">
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-sm md:text-base">Status Pengecekan APAR & Cadangan</h3>
-                            <p class="text-[11px] text-slate-500">Pilih periode Bulan & Tahun untuk melihat status.</p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div class="flex items-center gap-1 bg-slate-50 p-1 border rounded-xl shadow-sm">
-                                <select id="statusMonthSelect" onchange="loadKaryawanAparStatus()" class="px-2.5 py-1.5 text-xs font-semibold bg-white border rounded-lg text-slate-700 outline-none">
-                                    <option value="01">Jan</option> <option value="02">Feb</option> <option value="03">Mar</option>
-                                    <option value="04">Apr</option> <option value="05">Mei</option> <option value="06">Jun</option>
-                                    <option value="07">Jul</option> <option value="08">Ags</option> <option value="09">Sep</option>
-                                    <option value="10">Okt</option> <option value="11">Nov</option> <option value="12">Des</option>
-                                </select>
-                                <select id="statusYearSelect" onchange="loadKaryawanAparStatus()" class="px-2.5 py-1.5 text-xs font-semibold bg-white border rounded-lg text-slate-700 outline-none">
-                                </select>
+                <!-- TABEL STATUS CEK APAR & CADANGAN (KARYAWAN) DENGAN PETA -->
+                <div id="tabAparStatusList" class="hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-lg p-5 md:p-6 border border-slate-100 space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-sm md:text-base">Status Pengecekan APAR & Cadangan</h3>
+                                <p class="text-[11px] text-slate-500">Pilih periode Bulan & Tahun untuk melihat status (Sudah/Belum Dicek).</p>
                             </div>
-                            <button type="button" onclick="loadKaryawanAparStatus()" class="bg-slate-900 hover:bg-black text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">Muat Ulang</button>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="flex items-center gap-1 bg-slate-50 p-1 border rounded-xl shadow-sm">
+                                    <select id="statusMonthSelect" onchange="loadKaryawanAparStatus()" class="px-2.5 py-1.5 text-xs font-semibold bg-white border rounded-lg text-slate-700 outline-none">
+                                        <option value="01">Jan</option> <option value="02">Feb</option> <option value="03">Mar</option>
+                                        <option value="04">Apr</option> <option value="05">Mei</option> <option value="06">Jun</option>
+                                        <option value="07">Jul</option> <option value="08">Ags</option> <option value="09">Sep</option>
+                                        <option value="10">Okt</option> <option value="11">Nov</option> <option value="12">Des</option>
+                                    </select>
+                                    <select id="statusYearSelect" onchange="loadKaryawanAparStatus()" class="px-2.5 py-1.5 text-xs font-semibold bg-white border rounded-lg text-slate-700 outline-none">
+                                    </select>
+                                </div>
+                                <button type="button" onclick="loadKaryawanAparStatus()" class="bg-slate-900 hover:bg-black text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">Muat Ulang</button>
+                            </div>
+                        </div>
+                        <div class="table-container max-h-[400px] rounded-xl border">
+                            <table class="w-full text-center text-xs border-collapse min-w-[550px]">
+                                <thead class="sticky top-0 bg-slate-900 text-white z-10">
+                                    <tr>
+                                        <th class="p-2.5 border-b border-slate-700">No.</th>
+                                        <th class="p-2.5 border-b border-slate-700">Kode APAR</th>
+                                        <th class="p-2.5 border-b border-slate-700">Lokasi Area</th>
+                                        <th class="p-2.5 border-b border-slate-700">Jenis & Kapasitas</th>
+                                        <th class="p-2.5 border-b border-slate-700">Status Periode Ini</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="karyawanAparStatusTableBody">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="table-container max-h-[500px] rounded-xl border">
-                        <table class="w-full text-center text-xs border-collapse min-w-[550px]">
-                            <thead class="sticky top-0 bg-slate-900 text-white z-10">
-                                <tr>
-                                    <th class="p-2.5 border-b border-slate-700">No.</th>
-                                    <th class="p-2.5 border-b border-slate-700">Kode APAR</th>
-                                    <th class="p-2.5 border-b border-slate-700">Lokasi Area</th>
-                                    <th class="p-2.5 border-b border-slate-700">Jenis & Kapasitas</th>
-                                    <th class="p-2.5 border-b border-slate-700">Status Periode Ini</th>
-                                </tr>
-                            </thead>
-                            <tbody id="karyawanAparStatusTableBody">
-                            </tbody>
-                        </table>
+
+                    <!-- PETA DENAH PADA MENU STATUS CEK -->
+                    <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-slate-100 space-y-3">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3">
+                            <div>
+                                <h3 class="text-sm md:text-base font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>🗺️ Peta Denah Penempatan APAR Terkini</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-500">Peta sinkronisasi sebaran APAR berdasarkan status pengecekan bulan aktif.</p>
+                            </div>
+                            <div class="flex items-center gap-2 w-full md:w-auto">
+                                <input type="text" id="statusMapSearch" oninput="filterStatusMap()" placeholder="Cari Kode / Lokasi APAR..." class="px-3 py-2 border border-slate-200 rounded-xl text-xs w-full md:w-64 focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
+                            </div>
+                        </div>
+
+                        <div class="relative w-full overflow-auto border border-slate-800 rounded-2xl bg-slate-900 p-2 min-h-[400px] flex items-center justify-center shadow-inner">
+                            <div id="statusMapCanvas" class="relative inline-block w-full max-w-[1200px]">
+                                <img src="Layout Peta APAR.png" alt="Denah PTKP" class="w-full h-auto object-contain block opacity-90 rounded-lg shadow" onerror="this.src='https://via.placeholder.com/1200x800?text=Denah+Layout+PT+Kertas+Padalarang'">
+                                <div id="statusMarkersLayer" class="absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] md:text-[11px] text-slate-500 flex flex-wrap gap-2 items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span>💡 <b>Petunjuk:</b> Klik titik nomor APAR di peta untuk melihat detail spesifikasi dan riwayat cek.</span>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span> Sudah Dicek</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shadow-sm"></span> Belum Dicek</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block animate-fast-blink shadow-sm"></span> Perlu Perbaikan</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -291,7 +302,7 @@
                         <div class="flex flex-wrap justify-between items-center gap-2">
                             <div>
                                 <h3 class="font-bold text-slate-800 text-sm">Rekapitulasi Inspeksi APAR & Evaluasi</h3>
-                                <p class="text-[11px] text-slate-500">Pilih periode laporan Bulanan atau Semesteran.</p>
+                                <p class="text-[11px] text-slate-500">Pilih periode laporan Bulanan atau Semesteran. (Tekan <b>CTRL + Z</b> untuk Undo hapus)</p>
                             </div>
                             <div class="flex gap-2 flex-wrap">
                                 <button type="button" onclick="openManualAddAparModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">➕ Tambah Data</button>
@@ -733,7 +744,6 @@
                             <input type="text" id="managePassword" required class="w-full px-3.5 py-2.5 border rounded-xl shadow-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Masukkan password baru">
                         </div>
 
-                        <!-- PENGATURAN BUKA/KUNCI FITUR KARYAWAN -->
                         <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
                             <label class="block font-bold text-slate-800">Pengaturan Akses Fitur Karyawan (Temuan & APD)</label>
                             <p class="text-[10px] text-slate-500">Centang opsi di bawah jika ingin membuka akses modul Temuan & APD agar dapat diakses oleh akun Karyawan.</p>
@@ -751,7 +761,7 @@
         </main>
     </div>
 
-    <!-- MODAL SPESIFIKASI APAR -->
+    <!-- MODAL SPESIFIKASI APAR (POPUP) -->
     <div id="aparDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 no-print">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-3.5 relative animate-in fade-in zoom-in duration-200 border border-slate-100">
             <button onclick="closeAparDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition">✕</button>
@@ -764,14 +774,20 @@
             </div>
             
             <div class="space-y-2 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-2xl border shadow-inner">
+                <!-- Keterangan Exp dipindahkan ke atas sebelum bagian Media -->
+                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Exp:</span> <span class="font-bold text-red-600" id="modalAparExpDate">Desember 2028</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Media:</span> <span class="font-bold text-slate-900" id="modalAparTypeText">Powder</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kapasitas:</span> <span class="font-bold text-slate-900" id="modalAparCapText">6 Kg</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Tekanan:</span> <span class="font-bold text-slate-900" id="modalAparPressureType">Manometer</span></div>
-                <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Exp:</span> <span class="font-bold text-red-600" id="modalAparExpDate">Desember 2028</span></div>
+                
+                <div class="flex justify-between border-b pb-1.5 bg-amber-50/70 p-1.5 rounded-xl border border-amber-200/60">
+                    <span class="text-amber-900 font-bold">🕒 Terakhir Cek:</span> 
+                    <span class="font-bold text-slate-900 text-[11px]" id="modalAparLastCheckDate">Memuat...</span>
+                </div>
+
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Status Bulan Ini:</span> <span id="modalAparStatusBadge" class="font-bold">Memuat...</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kelayakan:</span> <span id="modalAparKelayakanBadge" class="font-bold">-</span></div>
                 
-                <!-- DETAIL PERBAIKAN -->
                 <div id="modalAparDetailPerbaikanContainer" class="hidden pt-1.5 border-t border-red-200">
                     <span class="text-red-700 font-bold block mb-1">🛠️ Detail Perbaikan:</span>
                     <div id="modalAparDetailPerbaikanText" class="p-2 bg-red-50 text-red-800 rounded-xl font-medium border border-red-200 leading-relaxed text-[11px]"></div>
@@ -821,7 +837,6 @@
                         <option value="Penataan Ulang Aksesibilitas (Terhalang Material)">Penataan Ulang Aksesibilitas</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
-                    <!-- Input teks bebas -->
                     <input type="text" id="editRekomendasiCustom" placeholder="Ketik detail perbaikan secara bebas di sini..." class="w-full px-3 py-2 border rounded-xl shadow-sm focus:ring-2 focus:ring-red-500 outline-none">
                 </div>
 
@@ -998,6 +1013,7 @@
         let qrList = [];
         let backupQrList = [];
         let activeMapEditIndex = null;
+        let deletedAparHistoryStack = [];
 
         let appCredentials = JSON.parse(localStorage.getItem('k3_app_credentials')) || {
             admin: { user: 'admin', pass: 'admin123' },
@@ -1020,6 +1036,48 @@
             initBackupQrListStorage();
             initStatusYearOptions();
             fetchAparDataAndRenderMaps();
+
+            window.addEventListener('keydown', async (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                    const rekapModul = document.getElementById('tabAparReport');
+                    if (rekapModul && !rekapModul.classList.contains('hidden')) {
+                        e.preventDefault();
+                        if (deletedAparHistoryStack.length > 0) {
+                            let lastDeleted = deletedAparHistoryStack.pop();
+                            try {
+                                const payload = {
+                                    action: "apar",
+                                    code: lastDeleted[1],
+                                    location: lastDeleted[2],
+                                    type: lastDeleted[3] || 'Dry Chemical Powder',
+                                    capacity: lastDeleted[4] || '6',
+                                    pressureType: lastDeleted[7] || 'Manometer',
+                                    expDate: 'Desember 2028',
+                                    pressure: lastDeleted[7] || 'Normal',
+                                    pin: lastDeleted[8] || 'Terpasang & Tersegel',
+                                    hose: lastDeleted[9] || 'Bagus',
+                                    body: lastDeleted[10] || 'Bagus',
+                                    hanger: lastDeleted[11] || 'Kuat',
+                                    tag: lastDeleted[12] || 'Ada',
+                                    access: lastDeleted[13] || 'Bebas',
+                                    status: lastDeleted[14] || 'LAYAK',
+                                    notes: lastDeleted[15] || '',
+                                    inspector: lastDeleted[16] || 'Admin',
+                                    photoBase64: lastDeleted[17] || ''
+                                };
+                                await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+                                alert(`Undo berhasil! Data APAR ${lastDeleted[1]} dikembalikan.`);
+                                await loadReportData();
+                                await fetchAparDataAndRenderMaps();
+                            } catch (err) {
+                                alert("Gagal melakukan undo ke server.");
+                            }
+                        } else {
+                            alert("Tidak ada riwayat data yang bisa di-undo.");
+                        }
+                    }
+                }
+            });
         });
 
         function formatText(command) {
@@ -1195,8 +1253,6 @@
                 switchAparTab('report');
             } else {
                 subTitle.textContent = "PT Kertas Padalarang";
-                let isUnlocked = appCredentials.karyawan && appCredentials.karyawan.featuresUnlocked;
-
                 navContainer.innerHTML = `
                     <button onclick="switchModule('apar')" id="navApar" class="bg-red-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all duration-200 transform hover:scale-105 whitespace-nowrap flex items-center gap-1"><span>🧯</span> APAR</button>
                     <button onclick="switchModule('temuan')" id="navTemuan" class="bg-red-800/80 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow transition-all duration-200 whitespace-nowrap flex items-center gap-1"><span>⚠️</span> Temuan</button>
@@ -1423,12 +1479,14 @@
                 const result = await res.json();
                 globalAparList = result.records || [];
 
-                let inspectedCodesThisMonth = new Set();
+                let checkedCodesSet = new Set();
                 if (globalAparList) {
                     globalAparList.forEach(r => {
                         let checkDateStr = r[0] || '';
                         if (checkDateStr && checkDateStr.startsWith(targetYearMonth)) {
-                            if (r[1]) inspectedCodesThisMonth.add(r[1].trim().toLowerCase());
+                            if (r[1]) {
+                                checkedCodesSet.add(r[1].trim().toLowerCase());
+                            }
                         }
                     });
                 }
@@ -1439,16 +1497,18 @@
                     combinedCheckList.push({ ...item, id: `C-${index + 1}`, isBackup: true });
                 });
 
-                renderKaryawanAparTable(combinedCheckList, inspectedCodesThisMonth);
+                renderKaryawanAparTable(combinedCheckList, checkedCodesSet);
+                renderStatusMapMarkers();
             } catch(e) {
                 let combinedCheckList = [];
                 qrList.forEach(item => combinedCheckList.push({ ...item, isBackup: false }));
                 backupQrList.forEach((item, index) => combinedCheckList.push({ ...item, id: `C-${index + 1}`, isBackup: true }));
                 renderKaryawanAparTable(combinedCheckList, new Set());
+                renderStatusMapMarkers();
             }
         }
 
-        function renderKaryawanAparTable(dataArray, inspectedSet) {
+        function renderKaryawanAparTable(dataArray, checkedSet) {
             const tbody = document.getElementById('karyawanAparStatusTableBody');
             tbody.innerHTML = "";
             const mVal = document.getElementById('statusMonthSelect').value;
@@ -1457,10 +1517,14 @@
             const periodLabel = `${monthNames[parseInt(mVal)-1]} ${yVal}`;
 
             dataArray.forEach((item) => {
-                let isChecked = inspectedSet.has(item.code.toLowerCase());
-                let badgeStatus = isChecked 
-                    ? `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-bold">🟢 Sudah (${periodLabel})</span>`
-                    : `<span class="px-2.5 py-1 bg-red-100 text-red-800 rounded-full text-[11px] font-bold">🔴 Belum (${periodLabel})</span>`;
+                let codeKey = item.code.toLowerCase();
+                let badgeStatus = "";
+
+                if (checkedSet.has(codeKey)) {
+                    badgeStatus = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-bold">🟢 Sudah Dicek (${periodLabel})</span>`;
+                } else {
+                    badgeStatus = `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-[11px] font-bold">🟡 Belum Dicek (${periodLabel})</span>`;
+                }
 
                 let badgeType = item.isBackup ? `<span class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-md text-[8px] font-bold">CADANGAN</span>` : '';
 
@@ -1650,6 +1714,7 @@
                 globalAparList = [];
             }
             renderPublicMapMarkers();
+            renderStatusMapMarkers();
         }
 
         async function openAparDetailPopup(aparCode) {
@@ -1667,11 +1732,14 @@
             
             const badgeEl = document.getElementById('modalAparStatusBadge');
             const kelayakanEl = document.getElementById('modalAparKelayakanBadge');
+            const lastCheckEl = document.getElementById('modalAparLastCheckDate');
             const detailContainer = document.getElementById('modalAparDetailPerbaikanContainer');
             const detailText = document.getElementById('modalAparDetailPerbaikanText');
+            const idNumEl = document.getElementById('modalAparIdNum');
 
             badgeEl.innerHTML = `<span class="text-slate-500 italic">Mengecek...</span>`;
             kelayakanEl.innerHTML = `<span class="text-slate-500 italic">-</span>`;
+            lastCheckEl.innerHTML = `<span class="text-slate-500 italic">Memuat...</span>`;
             detailContainer.classList.add('hidden');
             detailText.innerHTML = "";
             document.getElementById('aparDetailModal').classList.remove('hidden');
@@ -1681,6 +1749,7 @@
             let isCheckedThisMonth = false;
             let currentStatusKelayakan = "BELUM DICEK";
             let catatanPerbaikan = "";
+            let lastCheckDatePretty = "Belum Pernah Dicek";
 
             try {
                 let records = globalAparList;
@@ -1691,33 +1760,49 @@
                     globalAparList = records;
                 }
                 if(records) {
-                    let matchedRecord = records.find(r => {
+                    let matchingRecords = records.filter(r => r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase());
+                    if(matchingRecords.length > 0) {
+                        let latestRecord = matchingRecords[matchingRecords.length - 1];
+                        if(latestRecord[0]) {
+                            lastCheckDatePretty = formatDateTimePretty(latestRecord[0]);
+                        }
+                    }
+
+                    let monthMatchingRecords = records.filter(r => {
                         let checkDateStr = r[0] || '';
                         return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
                     });
 
-                    if(matchedRecord) {
+                    if(monthMatchingRecords.length > 0) {
                         isCheckedThisMonth = true;
-                        currentStatusKelayakan = matchedRecord[14] || "LAYAK";
-                        catatanPerbaikan = matchedRecord[15] || matchedRecord[16] || "Perlu Perbaikan / Pengecekan Ulang";
+                        let latestMonthRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
+                        currentStatusKelayakan = latestMonthRecord[14] || "LAYAK";
+                        catatanPerbaikan = latestMonthRecord[15] || latestMonthRecord[16] || "";
                     }
                 }
             } catch(e) {}
 
+            lastCheckEl.textContent = lastCheckDatePretty;
+
+            // Logika warna nomor APAR dan Status Bulan Ini
             if(isCheckedThisMonth) {
-                badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">🟢 Sudah Dicek Bulan Ini</span>`;
+                badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">🟢 Sudah Dicek Bulan Ini</span>`;
+                
                 if(currentStatusKelayakan === 'LAYAK') {
                     kelayakanEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full text-[10px] font-bold">LAYAK</span>`;
                     detailContainer.classList.add('hidden');
+                    idNumEl.className = "w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-inner";
                 } else {
                     kelayakanEl.innerHTML = `<span class="text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full text-[10px] font-bold">PERLU PERBAIKAN</span>`;
                     detailText.textContent = catatanPerbaikan || "Terdapat kondisi tidak sesuai / memerlukan tindak lanjut perbaikan.";
                     detailContainer.classList.remove('hidden');
+                    idNumEl.className = "w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center font-bold text-sm shadow-inner animate-fast-blink";
                 }
             } else {
-                badgeEl.innerHTML = `<span class="text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full text-[10px]">🟡 Belum Dicek Bulan Ini</span>`;
+                badgeEl.innerHTML = `<span class="text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full text-[10px] font-bold">🟡 Belum Dicek Bulan Ini</span>`;
                 kelayakanEl.innerHTML = `<span class="text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full text-[10px] font-bold">BELUM ADA DATA</span>`;
                 detailContainer.classList.add('hidden');
+                idNumEl.className = "w-10 h-10 rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-sm shadow-inner";
             }
         }
 
@@ -1735,22 +1820,34 @@
                 if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
                 if(item.x < 0 || item.y < 0) return;
 
+                let isCheckedThisMonth = false;
                 let isPerbaikan = false;
+
                 if(globalAparList) {
-                    let matchedRecord = globalAparList.find(r => {
+                    let monthMatchingRecords = globalAparList.filter(r => {
                         let checkDateStr = r[0] || '';
                         return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
                     });
-                    if(matchedRecord && matchedRecord[14] === 'PERLU PERBAIKAN') {
-                        isPerbaikan = true;
+
+                    if(monthMatchingRecords.length > 0) {
+                        isCheckedThisMonth = true;
+                        let latestRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
+                        if(latestRecord[14] === 'PERLU PERBAIKAN') {
+                            isPerbaikan = true;
+                        } else {
+                            isPerbaikan = false;
+                        }
                     }
                 }
 
                 let marker = document.createElement('div');
+                
                 if(isPerbaikan) {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 animate-pulse hover:scale-125";
-                } else {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-[0_0_12px_rgba(239,68,68,1)] border-2 border-white pointer-events-auto transition z-30 animate-fast-blink hover:scale-125";
+                } else if(isCheckedThisMonth) {
                     marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 hover:scale-125";
+                } else {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-10 hover:scale-125";
                 }
 
                 marker.style.left = `${item.x || 50}%`;
@@ -1764,6 +1861,59 @@
         function filterPublicMap() {
             const q = document.getElementById('publicMapSearch').value.toLowerCase();
             renderPublicMapMarkers(q);
+        }
+
+        function renderStatusMapMarkers(filterQuery = "") {
+            const layer = document.getElementById('statusMarkersLayer');
+            if(!layer) return;
+            layer.innerHTML = "";
+
+            const mVal = document.getElementById('statusMonthSelect') ? document.getElementById('statusMonthSelect').value : String(new Date().getMonth() + 1).padStart(2, '0');
+            const yVal = document.getElementById('statusYearSelect') ? document.getElementById('statusYearSelect').value : new Date().getFullYear();
+            const targetYearMonth = `${yVal}-${mVal}`;
+
+            qrList.forEach(item => {
+                if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
+                if(item.x < 0 || item.y < 0) return;
+
+                let isCheckedThisPeriod = false;
+                let isPerbaikan = false;
+
+                if(globalAparList) {
+                    let matchingRecords = globalAparList.filter(r => {
+                        let checkDateStr = r[0] || '';
+                        return checkDateStr && checkDateStr.startsWith(targetYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
+                    });
+
+                    if(matchingRecords.length > 0) {
+                        isCheckedThisPeriod = true;
+                        let latestRecord = matchingRecords[matchingRecords.length - 1];
+                        if(latestRecord[14] === 'PERLU PERBAIKAN') {
+                            isPerbaikan = true;
+                        }
+                    }
+                }
+
+                let marker = document.createElement('div');
+                if(isPerbaikan) {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-[0_0_12px_rgba(239,68,68,1)] border-2 border-white pointer-events-auto transition z-30 animate-fast-blink hover:scale-125";
+                } else if(isCheckedThisPeriod) {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 hover:scale-125";
+                } else {
+                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-10 hover:scale-125";
+                }
+
+                marker.style.left = `${item.x || 50}%`;
+                marker.style.top = `${item.y || 50}%`;
+                marker.textContent = item.id;
+                marker.onclick = (e) => { e.stopPropagation(); openAparDetailPopup(item.code); };
+                layer.appendChild(marker);
+            });
+        }
+
+        function filterStatusMap() {
+            const q = document.getElementById('statusMapSearch').value.toLowerCase();
+            renderStatusMapMarkers(q);
         }
 
         function renderAdminMapMarkers() {
@@ -1781,22 +1931,35 @@
                 if(item.x >= 0 && item.y >= 0) {
                     select.innerHTML += `<option value="${item.id}">${item.code} - ${item.location}</option>`;
 
+                    let isCheckedThisMonth = false;
                     let isPerbaikan = false;
+
                     if(globalAparList) {
-                        let matchedRecord = globalAparList.find(r => {
+                        let monthMatchingRecords = globalAparList.filter(r => {
                             let checkDateStr = r[0] || '';
                             return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
                         });
-                        if(matchedRecord && matchedRecord[14] === 'PERLU PERBAIKAN') {
-                            isPerbaikan = true;
+                        if(monthMatchingRecords.length > 0) {
+                            isCheckedThisMonth = true;
+                            let latestRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
+                            if(latestRecord[14] === 'PERLU PERBAIKAN') isPerbaikan = true;
                         }
                     }
 
                     let marker = document.createElement('div');
-                    let colorClass = isPerbaikan ? "bg-red-600 animate-pulse" : "bg-emerald-500";
-                    if(activeMapEditIndex === item.id) colorClass = "bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse";
+                    let colorClass = "";
+                    
+                    if(activeMapEditIndex === item.id) {
+                        colorClass = "bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse text-white";
+                    } else if(isPerbaikan) {
+                        colorClass = "bg-red-600 text-white font-extrabold shadow-[0_0_12px_rgba(239,68,68,1)] animate-fast-blink";
+                    } else if(isCheckedThisMonth) {
+                        colorClass = "bg-emerald-500 text-white";
+                    } else {
+                        colorClass = "bg-amber-400 text-slate-900";
+                    }
 
-                    marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${colorClass}`;
+                    marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${colorClass}`;
                     marker.style.left = `${item.x || 50}%`;
                     marker.style.top = `${item.y || 50}%`;
                     marker.textContent = item.id;
@@ -2015,10 +2178,11 @@
                     photoBase64: photoBase64
                 };
 
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Data Inspeksi APAR berhasil disimpan!");
                 document.getElementById('aparForm').reset();
                 setAutomaticDates();
+                fetchAparDataAndRenderMaps();
             } catch(e) { alert("Gagal menyimpan data."); }
             finally { btn.disabled = false; btn.textContent = "Kirim & Simpan"; }
         }
@@ -2044,7 +2208,7 @@
                     photoBase64: photoBase64
                 };
 
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Laporan Temuan berhasil dikirim!");
                 event.target.reset(); setAutomaticDates(); generateTemuanId();
             } catch(e) { alert("Gagal mengirim."); }
@@ -2070,7 +2234,7 @@
                     photoBase64: photoBase64
                 };
 
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Tindak lanjut berhasil disimpan!");
                 event.target.reset();
                 document.getElementById('selectedTemuanPreview').classList.add('hidden');
@@ -2100,7 +2264,7 @@
                     photoBase64: photoBase64
                 };
 
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Permintaan APD berhasil diajukan!");
                 event.target.reset(); setAutomaticDates();
             } catch(e) { alert("Gagal mengajukan."); }
@@ -2179,15 +2343,15 @@
                         let aparCode = r[1] || 'APAR';
                         let lokasiArea = r[2] || '-';
                         
-                        let press = r[7] ? `Tekanan: <b>${r[7]}</b>` : '';
-                        let pin = r[8] ? `Pin: <b>${r[8]}</b>` : '';
-                        let hose = r[9] ? `Selang: <b>${r[9]}</b>` : '';
-                        let body = r[10] ? `Tabung: <b>${r[10]}</b>` : '';
-                        let hanger = r[11] ? `Bracket: <b>${r[11]}</b>` : '';
-                        let tag = r[12] ? `Kartu: <b>${r[12]}</b>` : '';
+                        let conditions = [];
+                        if (r[7] && r[7] !== 'Normal') conditions.push(`Tekanan: <b>${r[7]}</b>`);
+                        if (r[8] && r[8] !== 'Terpasang & Tersegel') conditions.push(`Pin: <b>${r[8]}</b>`);
+                        if (r[9] && !r[9].toLowerCase().includes('bagus')) conditions.push(`Selang: <b>${r[9]}</b>`);
+                        if (r[10] && !r[10].toLowerCase().includes('bagus')) conditions.push(`Tabung: <b>${r[10]}</b>`);
+                        if (r[11] && !r[11].toLowerCase().includes('kuat')) conditions.push(`Bracket: <b>${r[11]}</b>`);
+                        if (r[12] && !r[12].toLowerCase().includes('ada')) conditions.push(`Kartu: <b>${r[12]}</b>`);
 
-                        let kondisiFisikArr = [press, pin, hose, body, hanger, tag].filter(item => item !== '');
-                        let kondisiFisikStr = kondisiFisikArr.length > 0 ? kondisiFisikArr.join(' | ') : 'Bagus / Standard';
+                        let kondisiFisikStr = conditions.length > 0 ? conditions.join(' | ') : '<span class="text-emerald-600 font-semibold">Normal / Layak</span>';
 
                         let akses = r[13] || '-';
                         let statusKelayakan = r[14] || 'LAYAK';
@@ -2247,7 +2411,7 @@
                     capacity: "6",
                     pressureType: "Manometer",
                     expDate: "Desember 2028",
-                    pressure: "Normal (Hijau)",
+                    pressure: "Normal",
                     pin: "Terpasang & Tersegel",
                     hose: "Bagus / Tidak Retak",
                     body: "Bagus / Bersih",
@@ -2260,7 +2424,7 @@
                     photoBase64: ""
                 };
 
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Data berhasil ditambahkan secara manual!");
                 closeManualAddAparModal();
                 setTimeout(loadReportData, 1500);
@@ -2268,27 +2432,40 @@
             finally { btn.disabled = false; btn.textContent = "Simpan & Tambah"; }
         }
 
+        // FUNGSI HAPUS REKAP LAPORAN (MENGGUNAKAN NO-CORS AGAR LANGSUNG TEMBUS KE SPREADSHEET)
         async function deleteAparRecord(index) {
             const data = globalAparList[index];
             if(!data) return;
-            if(confirm(`Hapus data inspeksi APAR kode "${data[1]}" (${data[2]})?`)) {
+            
+            let waktuInput = data[0];
+            let aparCode = data[1];
+            let statusKelayakan = data[14];
+
+            if(confirm(`Hapus data pengecekan APAR (${aparCode}) dengan status "${statusKelayakan}" pada waktu ${waktuInput}?`)) {
                 try {
                     const payload = {
-                        action: "deleteApar",
-                        rowIndex: index,
-                        code: data[1]
+                        action: "deleteAparByUniqueKey",
+                        code: aparCode,
+                        timestamp: waktuInput
                     };
+
+                    deletedAparHistoryStack.push(data);
 
                     await fetch(SCRIPT_URL, { 
                         method: "POST", 
-                        mode: "no-cors", 
-                        headers: { "Content-Type": "application/json" }, 
+                        mode: "no-cors",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }, 
                         body: JSON.stringify(payload) 
                     });
 
-                    globalAparList.splice(index, 1);
-                    loadReportData();
-                    alert("Data berhasil dihapus dan disinkronkan ke server!");
+                    alert(`Perintah hapus untuk APAR ${aparCode} dikirim ke server...`);
+                    
+                    setTimeout(async () => {
+                        await loadReportData();
+                        await fetchAparDataAndRenderMaps();
+                        alert(`Data pengecekan ${aparCode} berhasil dihapus dari Spreadsheet & Webapps! (Tekan CTRL + Z jika ingin Undo)`);
+                    }, 2000);
+
                 } catch(e) {
                     alert("Gagal menghapus data dari server.");
                 }
@@ -2362,10 +2539,11 @@
                         photoBase64: photoBase64
                     };
 
-                    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                    await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                     alert("Evaluasi diperbarui!");
                     closeEditModal();
                     setTimeout(loadReportData, 1500);
+                    fetchAparDataAndRenderMaps();
                 }
             } catch(e) { alert("Gagal memperbarui."); }
             finally { btn.disabled = false; btn.textContent = "Simpan"; }
