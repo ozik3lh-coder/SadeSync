@@ -17,10 +17,18 @@
         #evalTextSingle ol { list-style-type: decimal !important; margin-left: 1.5rem !important; padding-left: 0.5rem !important; }
         
         @keyframes fastBlink {
-            0%, 100% { opacity: 1; transform: scale(1.15); }
+            0%, 100% { opacity: 1; transform: scale(1.6); }
             50% { opacity: 0.2; transform: scale(0.9); }
         }
         .animate-fast-blink { animation: fastBlink 0.4s infinite ease-in-out; }
+
+        .map-marker {
+            transition: transform 0.2s ease, z-index 0.2s ease;
+        }
+        .map-marker:hover {
+            transform: scale(1.6);
+            z-index: 100 !important;
+        }
 
         @media print {
             body * { visibility: hidden; }
@@ -217,8 +225,24 @@
                         
                         <div>
                             <label class="block font-semibold text-slate-700 mb-1">Dokumentasi Foto APAR</label>
-                            <input type="file" id="photoFile" accept="image/*" capture="environment" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-red-50 file:text-red-700 font-semibold file:cursor-pointer hover:file:bg-red-100 border rounded-xl p-1 bg-slate-50">
-                            <p class="text-[10px] text-amber-700 font-semibold mt-1">⚠️ Foto di-upload jika terdapat kondisi tidak sesuai (Perlu Perbaikan) atau kondisi APAR yang sudah diperbaiki.</p>
+                            <div class="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+                                <label class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-semibold px-4 py-2.5 rounded-xl border border-red-200 text-center cursor-pointer transition flex items-center justify-center gap-2">
+                                    <span>📷 Ambil Foto Langsung</span>
+                                    <input type="file" id="photoCapture" accept="image/*" capture="environment" onchange="handlePhotoSelected(this)" class="hidden">
+                                </label>
+                                <label class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold px-4 py-2.5 rounded-xl border border-slate-200 text-center cursor-pointer transition flex items-center justify-center gap-2">
+                                    <span>📁 Upload File Galeri</span>
+                                    <input type="file" id="photoFile" accept="image/*" onchange="handlePhotoSelected(this)" class="hidden">
+                                </label>
+                            </div>
+                            <div id="photoPreviewContainer" class="hidden mt-2 flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border">
+                                <img id="photoPreviewThumb" src="" class="w-12 h-12 object-cover rounded-lg border shadow-sm">
+                                <div class="flex-1 text-xs">
+                                    <p class="font-bold text-slate-800" id="photoFileName">Foto terpilih</p>
+                                    <button type="button" onclick="clearPhotoSelection()" class="text-red-600 font-semibold hover:underline mt-0.5">Hapus / Ganti Foto</button>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-amber-700 font-semibold mt-1">⚠️ Foto di-upload/dipotret jika terdapat kondisi tidak sesuai (Perlu Perbaikan) atau kondisi APAR yang sudah diperbaiki.</p>
                         </div>
 
                         <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-md transition transform hover:scale-[1.01]">Kirim & Simpan</button>
@@ -456,21 +480,28 @@
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-sm md:text-base">🗺️ Peta Denah Interaktif (Mode Admin)</h3>
-                                    <p class="text-[11px] text-slate-500">Klik marker untuk melihat, geser/klik denah untuk pindah lokasi, atau tambah titik baru.</p>
+                                    <p class="text-[11px] text-slate-500" id="mapModeDescription">Status: Mode Normal (Klik titik untuk melihat popup info).</p>
                                 </div>
                                 <div class="flex items-center gap-2 flex-wrap w-full md:w-auto">
                                     <select id="mapItemSelect" onchange="focusMapItem(this.value)" class="px-3 py-2 border rounded-xl text-xs font-semibold bg-slate-50 flex-1 md:flex-initial shadow-sm">
                                         <option value="">-- Pilih Cepat APAR --</option>
                                     </select>
-                                    <button type="button" onclick="addNewAparMarker()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">➕ Tambah Titik APAR</button>
-                                    <button type="button" id="toggleMultiSelectBtn" onclick="toggleMultiSelectMode()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">☑️ Pilih Titik</button>
-                                    <button type="button" onclick="deleteActiveMarker()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">🗑️ Hapus Titik</button>
-                                    <button type="button" onclick="saveMapPositions()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">💾 Simpan Peta</button>
+                                    <button type="button" id="toggleAdminEditModeBtn" onclick="toggleAdminEditMode()" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">✏️ Masuk Mode Edit Peta</button>
                                 </div>
                             </div>
 
+                            <!-- KONTROL TOMBOL TAMBAH, EDIT NOMOR, HAPUS, & SIMPAN (MUNCUL OTOMATIS SAAT MODE EDIT AKTIF) -->
+                            <div id="adminEditToolsContainer" class="hidden flex items-center gap-2 flex-wrap bg-slate-50 p-3 rounded-xl border shadow-inner">
+                                <span class="text-xs font-bold text-slate-700">🛠️ Aksi Edit:</span>
+                                <button type="button" onclick="addNewAparMarker()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">➕ Tambah Titik APAR</button>
+                                <button type="button" onclick="editActiveMarkerNumber()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">✏️ Edit Nomor Titik</button>
+                                <button type="button" id="toggleMultiSelectBtn" onclick="toggleMultiSelectMode()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">☑️ Pilih Titik</button>
+                                <button type="button" onclick="deleteActiveMarker()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">🗑️ Hapus Titik</button>
+                                <button type="button" onclick="saveMapPositions()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap">💾 Simpan Peta</button>
+                            </div>
+
                             <div class="relative w-full overflow-auto border border-slate-800 rounded-2xl bg-slate-900 p-2 min-h-[450px] flex items-center justify-center shadow-inner">
-                                <div id="adminMapCanvas" class="relative inline-block w-full max-w-[1200px] cursor-crosshair">
+                                <div id="adminMapCanvas" class="relative inline-block w-full max-w-[1200px]">
                                     <img src="Layout Peta APAR.png" alt="Denah PTKP" class="w-full h-auto object-contain block opacity-90 rounded-lg shadow" onerror="this.src='https://via.placeholder.com/1200x800?text=Denah+Layout+PT+Kertas+Padalarang'">
                                     <div id="adminMarkersLayer" class="absolute inset-0"></div>
                                 </div>
@@ -761,9 +792,9 @@
         </main>
     </div>
 
-    <!-- MODAL SPESIFIKASI APAR (POPUP) -->
+    <!-- MODAL SPESIFIKASI APAR (POPUP DENGAN SLIDER / GESER HALAMAN FOTO) -->
     <div id="aparDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 no-print">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-3.5 relative animate-in fade-in zoom-in duration-200 border border-slate-100">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-3.5 relative animate-in fade-in zoom-in duration-200 border border-slate-100 max-h-[90vh] overflow-y-auto">
             <button onclick="closeAparDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition">✕</button>
             <div class="flex items-center gap-3 border-b pb-3">
                 <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-sm shadow-inner" id="modalAparIdNum">01</div>
@@ -773,7 +804,14 @@
                 </div>
             </div>
             
-            <div class="space-y-2 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-2xl border shadow-inner">
+            <!-- SLIDER HALAMAN / TABS DI DALAM POPUP -->
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button type="button" id="popupTabInfoBtn" onclick="switchPopupTab('info')" class="flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition">📄 Spesifikasi & Status</button>
+                <button type="button" id="popupTabFotoBtn" onclick="switchPopupTab('foto')" class="flex-1 py-1.5 rounded-lg text-slate-600 transition">📷 Foto Temuan</button>
+            </div>
+
+            <!-- HALAMAN 1: SPESIFIKASI & STATUS -->
+            <div id="popupPageInfo" class="space-y-2 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-2xl border shadow-inner">
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Exp:</span> <span class="font-bold text-red-600" id="modalAparExpDate">Desember 2028</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Media:</span> <span class="font-bold text-slate-900" id="modalAparTypeText">Powder</span></div>
                 <div class="flex justify-between border-b pb-1.5"><span class="text-slate-500 font-medium">Kapasitas:</span> <span class="font-bold text-slate-900" id="modalAparCapText">6 Kg</span></div>
@@ -793,7 +831,38 @@
                 </div>
             </div>
 
+            <!-- HALAMAN 2: FOTO DOKUMENTASI / TEMUAN APAR -->
+            <div id="popupPageFoto" class="hidden space-y-2.5 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-2xl border shadow-inner text-center">
+                <p class="font-bold text-slate-800">Dokumentasi Foto Perbaikan / Temuan APAR</p>
+                <div id="popupPhotoWrapper" class="flex justify-center bg-slate-900 p-2 rounded-xl min-h-[160px] items-center">
+                    <span class="text-slate-400 italic text-[11px]" id="popupNoPhotoText">Tidak ada foto dokumentasi pada periode ini.</span>
+                </div>
+                <button type="button" id="popupDownloadPhotoBtn" onclick="downloadPopupPhoto()" class="hidden w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl transition shadow text-xs">
+                    ⬇️ Download Foto Ini
+                </button>
+            </div>
+
             <button type="button" onclick="closeAparDetailModal()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs transition shadow">Tutup</button>
+        </div>
+    </div>
+
+    <!-- MODAL PREVIEW FOTO BESAR -->
+    <div id="photoPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-3 no-print">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 space-y-4 relative animate-in fade-in zoom-in duration-200 border border-slate-100">
+            <button onclick="closePhotoPreviewModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition">✕</button>
+            <div class="border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-900">Preview Dokumentasi Foto APAR</h3>
+                <p id="previewPhotoSubtitle" class="text-[11px] text-slate-500">Detail foto hasil inspeksi lapangan.</p>
+            </div>
+            <div class="flex justify-center bg-slate-900 p-2 rounded-2xl max-h-[60vh] overflow-auto shadow-inner">
+                <img id="modalFullImage" src="" class="max-h-[50vh] object-contain rounded-xl shadow">
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button type="button" id="modalDownloadBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow flex items-center justify-center gap-2 text-xs">
+                    <span>⬇️ Download Foto</span>
+                </button>
+                <button type="button" onclick="closePhotoPreviewModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-5 rounded-xl transition text-xs">Tutup</button>
+            </div>
         </div>
     </div>
 
@@ -1015,6 +1084,11 @@
         let deletedAparHistoryStack = [];
         let isMultiSelectMode = false;
         let selectedMarkerIdsForDeletion = new Set();
+        let isDraggingMarker = false;
+        let draggedMarkerId = null;
+        let isAdminMapEditMode = false;
+        let popupCurrentPhotoBase64 = "";
+        let popupCurrentCode = "";
 
         let appCredentials = JSON.parse(localStorage.getItem('k3_app_credentials')) || {
             admin: { user: 'admin', pass: 'admin123' },
@@ -1102,7 +1176,7 @@
         }
 
         function initQrListStorage() {
-            let saved = localStorage.getItem('k3_qr_list_1_150_v12');
+            let saved = localStorage.getItem('k3_qr_list_unified_v13');
             if(saved) {
                 qrList = JSON.parse(saved);
             } else {
@@ -1124,7 +1198,7 @@
                         y: parseFloat(defaultY.toFixed(1))
                     });
                 }
-                localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
+                localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
             }
         }
 
@@ -1468,6 +1542,9 @@
         }
 
         async function loadKaryawanAparStatus() {
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
+
             const tbody = document.getElementById('karyawanAparStatusTableBody');
             tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-500">Memuat status...</td></tr>`;
 
@@ -1544,9 +1621,7 @@
         function renderAparProfileTable(dataArray) {
             const tbody = document.getElementById('aparProfileTableBody');
             tbody.innerHTML = "";
-            // Hanya tampilkan yang tidak dihapus (x >= 0 dan y >= 0)
-            const activeData = dataArray.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
-            activeData.forEach((item, index) => {
+            dataArray.forEach((item, index) => {
                 let realIndex = qrList.findIndex(q => q.id === item.id);
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
@@ -1566,6 +1641,8 @@
         }
 
         function filterAparTableProfile() {
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
             const query = document.getElementById('searchAparProfile').value.toLowerCase();
             const filtered = qrList.filter(item => item.code.toLowerCase().includes(query) || item.location.toLowerCase().includes(query) || item.type.toLowerCase().includes(query));
             renderAparProfileTable(filtered);
@@ -1669,11 +1746,13 @@
         }
 
         function renderAllQrCodes() {
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
+
             const container = document.getElementById('qrGridContainer');
             container.innerHTML = "";
             let combinedList = [];
-            // Hanya render QR code untuk APAR aktif (yang tidak dihapus dari peta)
-            qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0)).forEach(item => combinedList.push({ ...item, isBackup: false }));
+            qrList.forEach(item => combinedList.push({ ...item, isBackup: false }));
             backupQrList.forEach(item => combinedList.push({ ...item, isBackup: true }));
 
             combinedList.forEach((item, idx) => {
@@ -1710,6 +1789,11 @@
         }
 
         async function fetchAparDataAndRenderMaps() {
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) {
+                qrList = JSON.parse(savedQr);
+            }
+
             try {
                 const res = await fetch(SCRIPT_URL + "?action=apar");
                 const result = await res.json();
@@ -1719,9 +1803,33 @@
             }
             renderPublicMapMarkers();
             renderStatusMapMarkers();
+            renderAdminMapMarkers();
+        }
+
+        // FUNGSI GANTI TAB/HALAMAN DI DALAM POPUP SPESIFIKASI APAR
+        function switchPopupTab(tabName) {
+            const btnInfo = document.getElementById('popupTabInfoBtn');
+            const btnFoto = document.getElementById('popupTabFotoBtn');
+            const pageInfo = document.getElementById('popupPageInfo');
+            const pageFoto = document.getElementById('popupPageFoto');
+
+            if(tabName === 'info') {
+                btnInfo.className = "flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition";
+                btnFoto.className = "flex-1 py-1.5 rounded-lg text-slate-600 transition";
+                pageInfo.classList.remove('hidden');
+                pageFoto.classList.add('hidden');
+            } else {
+                btnFoto.className = "flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition";
+                btnInfo.className = "flex-1 py-1.5 rounded-lg text-slate-600 transition";
+                pageFoto.classList.remove('hidden');
+                pageInfo.classList.add('hidden');
+            }
         }
 
         async function openAparDetailPopup(aparCode) {
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
+
             let item = qrList.find(q => q.code.toLowerCase() === aparCode.toLowerCase());
             if(!item) item = backupQrList.find(q => q.code.toLowerCase() === aparCode.toLowerCase());
             if(!item) return;
@@ -1740,12 +1848,26 @@
             const detailContainer = document.getElementById('modalAparDetailPerbaikanContainer');
             const detailText = document.getElementById('modalAparDetailPerbaikanText');
             const idNumEl = document.getElementById('modalAparIdNum');
+            
+            // Elemen Foto di Popup
+            const photoWrapper = document.getElementById('popupPhotoWrapper');
+            const noPhotoText = document.getElementById('popupNoPhotoText');
+            const downloadPhotoBtn = document.getElementById('popupDownloadPhotoBtn');
 
             badgeEl.innerHTML = `<span class="text-slate-500 italic">Mengecek...</span>`;
             kelayakanEl.innerHTML = `<span class="text-slate-500 italic">-</span>`;
             lastCheckEl.innerHTML = `<span class="text-slate-500 italic">Memuat...</span>`;
             detailContainer.classList.add('hidden');
             detailText.innerHTML = "";
+            
+            // Reset foto popup
+            popupCurrentPhotoBase64 = "";
+            popupCurrentCode = item.code;
+            photoWrapper.innerHTML = `<span class="text-slate-400 italic text-[11px]" id="popupNoPhotoText">Tidak ada foto dokumentasi pada periode ini.</span>`;
+            downloadPhotoBtn.classList.add('hidden');
+
+            // Set default tab ke Info
+            switchPopupTab('info');
             document.getElementById('aparDetailModal').classList.remove('hidden');
 
             const now = new Date();
@@ -1754,6 +1876,7 @@
             let currentStatusKelayakan = "BELUM DICEK";
             let catatanPerbaikan = "";
             let lastCheckDatePretty = "Belum Pernah Dicek";
+            let foundPhoto = "";
 
             try {
                 let records = globalAparList;
@@ -1782,11 +1905,18 @@
                         let latestMonthRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
                         currentStatusKelayakan = latestMonthRecord[14] || "LAYAK";
                         catatanPerbaikan = latestMonthRecord[15] || latestMonthRecord[16] || "";
+                        foundPhoto = latestMonthRecord[17] || "";
                     }
                 }
             } catch(e) {}
 
             lastCheckEl.textContent = lastCheckDatePretty;
+
+            if(foundPhoto) {
+                popupCurrentPhotoBase64 = foundPhoto;
+                photoWrapper.innerHTML = `<img src="${foundPhoto}" class="max-h-48 object-contain rounded-xl shadow cursor-pointer hover:scale-105 transition" onclick="openPhotoPreviewModal('${foundPhoto}', '${item.code}', '${lastCheckDatePretty}')" title="Klik untuk memperbesar">`;
+                downloadPhotoBtn.classList.remove('hidden');
+            }
 
             if(isCheckedThisMonth) {
                 badgeEl.innerHTML = `<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">🟢 Sudah Dicek Bulan Ini</span>`;
@@ -1811,16 +1941,71 @@
 
         function closeAparDetailModal() { document.getElementById('aparDetailModal').classList.add('hidden'); }
 
+        function downloadPopupPhoto() {
+            if(popupCurrentPhotoBase64) {
+                downloadImage(popupCurrentPhotoBase64, popupCurrentCode);
+            }
+        }
+
+        // FUNGSI PREVIEW FOTO & DOWNLOAD
+        let activePreviewBase64 = "";
+        let activePreviewCode = "";
+
+        function openPhotoPreviewModal(base64Data, aparCode, timestampStr) {
+            if(!base64Data) return;
+            activePreviewBase64 = base64Data;
+            activePreviewCode = aparCode;
+            
+            document.getElementById('modalFullImage').src = base64Data;
+            document.getElementById('previewPhotoSubtitle').textContent = `APAR: ${aparCode} | Waktu: ${timestampStr || '-'}`;
+            
+            const dlBtn = document.getElementById('modalDownloadBtn');
+            dlBtn.onclick = () => {
+                downloadImage(activePreviewBase64, activePreviewCode);
+            };
+
+            document.getElementById('photoPreviewModal').classList.remove('hidden');
+        }
+
+        function closePhotoPreviewModal() {
+            document.getElementById('photoPreviewModal').classList.add('hidden');
+        }
+
+        function handlePhotoSelected(inputElem) {
+            if (inputElem.files && inputElem.files[0]) {
+                const file = inputElem.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('photoPreviewThumb').src = e.target.result;
+                    document.getElementById('photoFileName').textContent = file.name || "Foto Berhasil Dimuat";
+                    document.getElementById('photoPreviewContainer').classList.remove('hidden');
+                    
+                    const otherInputId = inputElem.id === 'photoCapture' ? 'photoFile' : 'photoCapture';
+                    document.getElementById(otherInputId).value = "";
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearPhotoSelection() {
+            document.getElementById('photoCapture').value = "";
+            document.getElementById('photoFile').value = "";
+            document.getElementById('photoPreviewContainer').classList.add('hidden');
+            document.getElementById('photoPreviewThumb').src = "";
+        }
+
+        // RENDER PETA PUBLIK
         function renderPublicMapMarkers(filterQuery = "") {
             const layer = document.getElementById('publicMarkersLayer');
             if(!layer) return;
             layer.innerHTML = "";
 
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
+
             const now = new Date();
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-            // Hanya render marker yang aktif (x >= 0 dan y >= 0)
-            const activeMarkers = qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
+            const activeMarkers = qrList;
 
             activeMarkers.forEach(item => {
                 if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
@@ -1833,26 +2018,20 @@
                         let checkDateStr = r[0] || '';
                         return checkDateStr && checkDateStr.startsWith(currentYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
                     });
-
                     if(monthMatchingRecords.length > 0) {
                         isCheckedThisMonth = true;
                         let latestRecord = monthMatchingRecords[monthMatchingRecords.length - 1];
-                        if(latestRecord[14] === 'PERLU PERBAIKAN') {
-                            isPerbaikan = true;
-                        } else {
-                            isPerbaikan = false;
-                        }
+                        if(latestRecord[14] === 'PERLU PERBAIKAN') isPerbaikan = true;
                     }
                 }
 
                 let marker = document.createElement('div');
-                
                 if(isPerbaikan) {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-[0_0_12px_rgba(239,68,68,1)] border-2 border-white pointer-events-auto transition z-30 animate-fast-blink hover:scale-125";
+                    marker.className = "map-marker absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 bg-red-600 text-white font-extrabold text-[7px] rounded-full flex items-center justify-center cursor-pointer shadow-[0_0_8px_rgba(239,68,68,1)] border border-white pointer-events-auto transition z-30 animate-fast-blink";
                 } else if(isCheckedThisMonth) {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 hover:scale-125";
+                    marker.className = "map-marker absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[7px] rounded-full flex items-center justify-center cursor-pointer shadow border border-white pointer-events-auto transition z-20";
                 } else {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-10 hover:scale-125";
+                    marker.className = "map-marker absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-[7px] rounded-full flex items-center justify-center cursor-pointer shadow border border-white pointer-events-auto transition z-10";
                 }
 
                 marker.style.left = `${item.x || 50}%`;
@@ -1868,16 +2047,20 @@
             renderPublicMapMarkers(q);
         }
 
+        // RENDER PETA STATUS
         function renderStatusMapMarkers(filterQuery = "") {
             const layer = document.getElementById('statusMarkersLayer');
             if(!layer) return;
             layer.innerHTML = "";
 
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
+
             const mVal = document.getElementById('statusMonthSelect') ? document.getElementById('statusMonthSelect').value : String(new Date().getMonth() + 1).padStart(2, '0');
             const yVal = document.getElementById('statusYearSelect') ? document.getElementById('statusYearSelect').value : new Date().getFullYear();
             const targetYearMonth = `${yVal}-${mVal}`;
 
-            const activeMarkers = qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
+            const activeMarkers = qrList;
 
             activeMarkers.forEach(item => {
                 if(filterQuery && !item.code.toLowerCase().includes(filterQuery) && !item.location.toLowerCase().includes(filterQuery)) return;
@@ -1890,23 +2073,20 @@
                         let checkDateStr = r[0] || '';
                         return checkDateStr && checkDateStr.startsWith(targetYearMonth) && r[1] && r[1].trim().toLowerCase() === item.code.toLowerCase();
                     });
-
                     if(matchingRecords.length > 0) {
                         isCheckedThisPeriod = true;
                         let latestRecord = matchingRecords[matchingRecords.length - 1];
-                        if(latestRecord[14] === 'PERLU PERBAIKAN') {
-                            isPerbaikan = true;
-                        }
+                        if(latestRecord[14] === 'PERLU PERBAIKAN') isPerbaikan = true;
                     }
                 }
 
                 let marker = document.createElement('div');
                 if(isPerbaikan) {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-[0_0_12px_rgba(239,68,68,1)] border-2 border-white pointer-events-auto transition z-30 animate-fast-blink hover:scale-125";
+                    marker.className = "map-marker absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 bg-red-600 text-white font-extrabold text-[7px] rounded-full flex items-center justify-center cursor-pointer shadow-[0_0_8px_rgba(239,68,68,1)] border border-white pointer-events-auto transition z-30 animate-fast-blink";
                 } else if(isCheckedThisPeriod) {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-20 hover:scale-125";
+                    marker.className = "map-marker absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[7px] rounded-full flex items-center justify-center cursor-pointer shadow border border-white pointer-events-auto transition z-20";
                 } else {
-                    marker.className = "absolute w-5 h-5 -ml-2.5 -mt-2.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white pointer-events-auto transition z-10 hover:scale-125";
+                    marker.className = "map-marker absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-[7px] rounded-full flex items-center justify-center cursor-pointer shadow border border-white pointer-events-auto transition z-10";
                 }
 
                 marker.style.left = `${item.x || 50}%`;
@@ -1920,6 +2100,28 @@
         function filterStatusMap() {
             const q = document.getElementById('statusMapSearch').value.toLowerCase();
             renderStatusMapMarkers(q);
+        }
+
+        function toggleAdminEditMode() {
+            isAdminMapEditMode = !isAdminMapEditMode;
+            const btnEditMode = document.getElementById('toggleAdminEditModeBtn');
+            const editTools = document.getElementById('adminEditToolsContainer');
+            const desc = document.getElementById('mapModeDescription');
+
+            if (isAdminMapEditMode) {
+                btnEditMode.className = "bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap";
+                btnEditMode.textContent = "🔓 Keluar Mode Edit Peta";
+                editTools.classList.remove('hidden');
+                desc.innerHTML = `<span class="text-amber-700 font-bold">⚠️ Mode Edit Aktif: Kursor tangan (drag) aktif. Popup dikunci.</span>`;
+            } else {
+                btnEditMode.className = "bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap";
+                btnEditMode.textContent = "✏️ Masuk Mode Edit Peta";
+                editTools.classList.add('hidden');
+                isMultiSelectMode = false;
+                selectedMarkerIdsForDeletion.clear();
+                desc.innerHTML = `Status: Mode Normal (Klik titik untuk melihat popup info).`;
+            }
+            renderAdminMapMarkers();
         }
 
         function toggleMultiSelectMode() {
@@ -1938,19 +2140,28 @@
             renderAdminMapMarkers();
         }
 
+        // RENDER PETA ADMIN
         function renderAdminMapMarkers() {
             const layer = document.getElementById('adminMarkersLayer');
             const select = document.getElementById('mapItemSelect');
-            if(!layer || !select) return;
+            const canvas = document.getElementById('adminMapCanvas');
+            if(!layer || !select || !canvas) return;
 
             layer.innerHTML = "";
             select.innerHTML = `<option value="">-- Pilih Cepat APAR --</option>`;
 
+            let savedQr = localStorage.getItem('k3_qr_list_unified_v13');
+            if(savedQr) qrList = JSON.parse(savedQr);
+
+            if (isAdminMapEditMode) {
+                canvas.className = "relative inline-block w-full max-w-[1200px] cursor-grab active:cursor-grabbing";
+            } else {
+                canvas.className = "relative inline-block w-full max-w-[1200px] cursor-default";
+            }
+
             const now = new Date();
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-            // Render hanya marker yang aktif (x >= 0 dan y >= 0)
-            const activeMarkers = qrList.filter(item => (item.x !== undefined && item.x >= 0) || (item.y !== undefined && item.y >= 0));
+            const activeMarkers = qrList;
 
             activeMarkers.forEach(item => {
                 select.innerHTML += `<option value="${item.id}">${item.code} - ${item.location}</option>`;
@@ -1974,46 +2185,132 @@
                 let colorClass = "";
                 let selectionBadge = "";
 
-                if (isMultiSelectMode && selectedMarkerIdsForDeletion.has(item.id)) {
-                    colorClass = "bg-purple-600 text-white ring-4 ring-purple-300 scale-125 z-40";
-                    selectionBadge = `<span class="absolute -top-1.5 -right-1.5 bg-white text-purple-700 rounded-full w-4 h-4 text-[9px] font-extrabold flex items-center justify-center shadow border border-purple-600">✓</span>`;
+                if (isAdminMapEditMode && isMultiSelectMode && selectedMarkerIdsForDeletion.has(item.id)) {
+                    colorClass = "bg-purple-600 text-white ring-2 ring-purple-300 scale-125 z-40";
+                    selectionBadge = `<span class="absolute -top-1 -right-1 bg-white text-purple-700 rounded-full w-3 h-3 text-[6px] font-extrabold flex items-center justify-center shadow border border-purple-600">✓</span>`;
                 } else if(activeMapEditIndex === item.id) {
-                    colorClass = "bg-amber-500 scale-125 ring-2 ring-amber-300 animate-pulse text-white";
+                    colorClass = "bg-amber-500 scale-150 ring-4 ring-amber-300 animate-fast-blink text-white z-50";
                 } else if(isPerbaikan) {
-                    colorClass = "bg-red-600 text-white font-extrabold shadow-[0_0_12px_rgba(239,68,68,1)] animate-fast-blink";
+                    colorClass = "bg-red-600 text-white font-extrabold shadow-[0_0_8px_rgba(239,68,68,1)] animate-fast-blink";
                 } else if(isCheckedThisMonth) {
                     colorClass = "bg-emerald-500 text-white";
                 } else {
                     colorClass = "bg-amber-400 text-slate-900";
                 }
 
-                marker.className = `absolute w-5 h-5 -ml-2.5 -mt-2.5 font-bold text-[9px] rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white transition z-20 ${colorClass}`;
+                let cursorStyle = isAdminMapEditMode ? "cursor-grab active:cursor-grabbing scale-110" : "cursor-pointer";
+                marker.className = `map-marker absolute w-4 h-4 -ml-2 -mt-2 font-bold text-[8px] rounded-full flex items-center justify-center shadow border-2 border-white transition z-20 ${cursorStyle} ${colorClass}`;
                 marker.style.left = `${item.x || 50}%`;
                 marker.style.top = `${item.y || 50}%`;
                 marker.innerHTML = `${item.id}${selectionBadge}`;
                 
-                marker.onclick = (e) => {
-                    e.stopPropagation();
-                    if (isMultiSelectMode) {
-                        if (selectedMarkerIdsForDeletion.has(item.id)) {
-                            selectedMarkerIdsForDeletion.delete(item.id);
-                        } else {
-                            selectedMarkerIdsForDeletion.add(item.id);
-                        }
-                        renderAdminMapMarkers();
-                    } else {
+                if (isAdminMapEditMode) {
+                    marker.onmousedown = (e) => {
+                        if (isMultiSelectMode) return;
+                        e.stopPropagation();
+                        isDraggingMarker = true;
+                        draggedMarkerId = item.id;
                         activeMapEditIndex = item.id;
                         select.value = item.id;
                         renderAdminMapMarkers();
+                    };
+
+                    marker.ontouchstart = (e) => {
+                        if (isMultiSelectMode) return;
+                        e.stopPropagation();
+                        isDraggingMarker = true;
+                        draggedMarkerId = item.id;
+                        activeMapEditIndex = item.id;
+                        select.value = item.id;
+                        renderAdminMapMarkers();
+                    };
+
+                    marker.onclick = (e) => {
+                        e.stopPropagation();
+                        if (isMultiSelectMode) {
+                            if (selectedMarkerIdsForDeletion.has(item.id)) {
+                                selectedMarkerIdsForDeletion.delete(item.id);
+                            } else {
+                                selectedMarkerIdsForDeletion.add(item.id);
+                            }
+                            renderAdminMapMarkers();
+                        } else {
+                            activeMapEditIndex = item.id;
+                            select.value = item.id;
+                            renderAdminMapMarkers();
+                        }
+                    };
+                } else {
+                    marker.onclick = (e) => {
+                        e.stopPropagation();
                         openAparDetailPopup(item.code);
-                    }
-                };
+                    };
+                }
+
                 layer.appendChild(marker);
             });
 
-            const canvas = document.getElementById('adminMapCanvas');
+            if(activeMapEditIndex) {
+                select.value = activeMapEditIndex;
+            }
+
+            canvas.onmousemove = (e) => {
+                if (!isAdminMapEditMode || !isDraggingMarker || draggedMarkerId === null) return;
+                const rect = canvas.getBoundingClientRect();
+                const xClick = e.clientX - rect.left;
+                const yClick = e.clientY - rect.top;
+                
+                let xPct = ((xClick / rect.width) * 100);
+                let yPct = ((yClick / rect.height) * 100);
+                
+                xPct = Math.max(0, Math.min(100, xPct)).toFixed(1);
+                yPct = Math.max(0, Math.min(100, yPct)).toFixed(1);
+
+                let target = qrList.find(q => q.id === draggedMarkerId);
+                if(target) {
+                    target.x = parseFloat(xPct);
+                    target.y = parseFloat(yPct);
+                    renderAdminMapMarkers();
+                }
+            };
+
+            window.onmouseup = () => {
+                if (isDraggingMarker) {
+                    isDraggingMarker = false;
+                    draggedMarkerId = null;
+                }
+            };
+
+            canvas.ontouchmove = (e) => {
+                if (!isAdminMapEditMode || !isDraggingMarker || draggedMarkerId === null) return;
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const xClick = touch.clientX - rect.left;
+                const yClick = touch.clientY - rect.top;
+                
+                let xPct = ((xClick / rect.width) * 100);
+                let yPct = ((yClick / rect.height) * 100);
+                
+                xPct = Math.max(0, Math.min(100, xPct)).toFixed(1);
+                yPct = Math.max(0, Math.min(100, yPct)).toFixed(1);
+
+                let target = qrList.find(q => q.id === draggedMarkerId);
+                if(target) {
+                    target.x = parseFloat(xPct);
+                    target.y = parseFloat(yPct);
+                    renderAdminMapMarkers();
+                }
+            };
+
+            window.ontouchend = () => {
+                if (isDraggingMarker) {
+                    isDraggingMarker = false;
+                    draggedMarkerId = null;
+                }
+            };
+
             canvas.onclick = (e) => {
-                if(isMultiSelectMode) return;
+                if (!isAdminMapEditMode || isMultiSelectMode) return;
                 if(!activeMapEditIndex) return;
                 const rect = canvas.getBoundingClientRect();
                 const xClick = e.clientX - rect.left;
@@ -2031,12 +2328,19 @@
         }
 
         function addNewAparMarker() {
-            const newId = qrList.length > 0 ? Math.max(...qrList.map(q => q.id)) + 1 : 1;
-            const newCode = `APAR-${String(newId).padStart(3, '0')}`;
-            const newLocation = `Area Baru APAR #${newId}`;
+            let maxId = 0;
+            qrList.forEach(q => {
+                if (q.id > maxId) {
+                    maxId = q.id;
+                }
+            });
+            let nextId = maxId + 1;
+            
+            const newCode = `APAR-${String(nextId).padStart(3, '0')}`;
+            const newLocation = `Area Baru APAR #${nextId}`;
 
             const newAparItem = {
-                id: newId,
+                id: nextId,
                 code: newCode,
                 location: newLocation,
                 type: "Dry Chemical Powder",
@@ -2048,22 +2352,62 @@
             };
 
             qrList.push(newAparItem);
-            activeMapEditIndex = newId;
-            localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
+            activeMapEditIndex = nextId;
+            localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
             
             renderAparProfileTable(qrList);
             renderAdminMapMarkers();
-            document.getElementById('mapItemSelect').value = newId;
+            document.getElementById('mapItemSelect').value = nextId;
             
-            alert(`Titik APAR baru (${newCode}) telah ditambahkan di tengah denah!\n\nSilakan klik posisi lokasi baru pada denah peta untuk memindahkannya, lalu klik "💾 Simpan Peta".`);
+            alert(`Titik APAR baru (${newCode}) telah ditambahkan di tengah denah!\n\nSilakan tekan dan geser (drag) titik tersebut ke lokasi yang diinginkan di peta, lalu klik "💾 Simpan Peta".`);
+        }
+
+        function editActiveMarkerNumber() {
+            if(!activeMapEditIndex) {
+                alert("Silakan pilih/klik titik APAR di peta atau melalui dropdown 'Pilih Cepat APAR' terlebih dahulu.");
+                return;
+            }
+            let target = qrList.find(q => q.id === activeMapEditIndex);
+            if(!target) return;
+
+            let newNumStr = prompt(`Ubah nomor ID untuk titik APAR saat ini (${target.id}):\n\nMasukkan angka baru:`, target.id);
+            if(newNumStr === null) return;
+
+            let newId = parseInt(newNumStr);
+            if(isNaN(newId) || newId <= 0) {
+                alert("Masukkan angka yang valid!");
+                return;
+            }
+
+            let existingActive = qrList.find(q => q.id === newId && q.id !== target.id);
+            if(existingActive) {
+                alert(`Nomor titik ${newId} saat ini sedang digunakan oleh ${existingActive.code} di peta! Pilih nomor lain.`);
+                return;
+            }
+
+            if (selectedMarkerIdsForDeletion.has(target.id)) {
+                selectedMarkerIdsForDeletion.delete(target.id);
+                selectedMarkerIdsForDeletion.add(newId);
+            }
+
+            target.id = newId;
+            target.code = `APAR-${String(newId).padStart(3, '0')}`;
+            activeMapEditIndex = newId;
+
+            localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
+            renderAparProfileTable(qrList);
+            renderAdminMapMarkers();
+            alert(`Nomor titik APAR berhasil diubah menjadi ID #${newId} (${target.code})! Jangan lupa klik "💾 Simpan Peta".`);
         }
 
         function focusMapItem(id) {
-            if(!id) return;
+            if(!id) {
+                activeMapEditIndex = null;
+                renderAdminMapMarkers();
+                return;
+            }
             activeMapEditIndex = parseInt(id);
             renderAdminMapMarkers();
-            let target = qrList.find(q => q.id === activeMapEditIndex);
-            if(target) openAparDetailPopup(target.code);
         }
 
         function deleteActiveMarker() {
@@ -2073,42 +2417,62 @@
                     return;
                 }
                 if (confirm(`Yakin ingin menghapus ${selectedMarkerIdsForDeletion.size} titik APAR yang dipilih sekaligus?`)) {
-                    selectedMarkerIdsForDeletion.forEach(id => {
-                        let target = qrList.find(q => q.id === id);
-                        if(target) {
-                            // Tandai koordinat negatif agar terhapus/tersembunyi dari peta, tabel master, dan QR code
-                            target.x = -10; 
-                            target.y = -10;
-                        }
-                    });
-                    localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
+                    let idsToRemove = Array.from(selectedMarkerIdsForDeletion);
+                    qrList = qrList.filter(q => !idsToRemove.includes(q.id));
+
+                    localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
                     selectedMarkerIdsForDeletion.clear();
-                    toggleMultiSelectMode(); 
+                    activeMapEditIndex = null;
+                    isMultiSelectMode = false;
+                    
+                    const btn = document.getElementById('toggleMultiSelectBtn');
+                    if(btn) {
+                        btn.className = "bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow whitespace-nowrap";
+                        btn.textContent = "☑️ Pilih Titik";
+                    }
+
                     renderAparProfileTable(qrList);
                     renderAdminMapMarkers();
-                    alert("Titik-titik APAR yang dipilih berhasil dihapus dan disinkronkan ke Master & QR Code!");
+                    renderPublicMapMarkers();
+                    renderStatusMapMarkers();
+
+                    alert("Titik-titik APAR yang dipilih berhasil dihapus secara permanen!");
                 }
             } else {
-                if(!activeMapEditIndex) { alert("Pilih titik APAR terlebih dahulu atau aktifkan mode '☑️ Pilih Titik' untuk hapus banyak sekaligus."); return; }
-                if(confirm(`Hapus titik penempatan APAR ID #${activeMapEditIndex}?`)) {
-                    let target = qrList.find(q => q.id === activeMapEditIndex);
-                    if(target) {
-                        // Sinkronisasi penuh: set koordinat negatif agar otomatis hilang dari Peta, Tabel Master, dan Cetak QR Code
-                        target.x = -10; 
-                        target.y = -10;
-                        localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
-                        activeMapEditIndex = null;
-                        renderAparProfileTable(qrList);
-                        renderAdminMapMarkers();
-                        alert("Titik APAR berhasil dihapus dan disinkronkan ke Master Profil & QR Code!");
-                    }
+                if(!activeMapEditIndex) { 
+                    alert("Silakan klik atau pilih titik APAR terlebih dahulu di peta / dropdown 'Pilih Cepat APAR'."); 
+                    return; 
+                }
+                
+                let targetIndex = qrList.findIndex(q => q.id === parseInt(activeMapEditIndex));
+                if(targetIndex === -1) {
+                    alert("Data titik APAR tidak ditemukan di sistem.");
+                    return;
+                }
+
+                let target = qrList[targetIndex];
+                if(confirm(`Hapus titik penempatan APAR ID #${target.id} (${target.code}) secara permanen?`)) {
+                    qrList.splice(targetIndex, 1);
+                    
+                    localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
+                    activeMapEditIndex = null;
+                    
+                    renderAparProfileTable(qrList);
+                    renderAdminMapMarkers();
+                    renderPublicMapMarkers();
+                    renderStatusMapMarkers();
+                    
+                    alert(`Titik APAR ID #${target.id} berhasil dihapus secara tuntas!`);
                 }
             }
         }
 
         function saveMapPositions() {
-            localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
-            alert("Posisi Peta APAR berhasil disimpan dan disinkronkan!");
+            localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
+            renderAparProfileTable(qrList);
+            renderPublicMapMarkers();
+            renderStatusMapMarkers();
+            alert("Posisi & Data Master APAR berhasil disimpan dan disinkronkan secara total ke Tabel Master Profil, Kartu QR, Peta Publik, & Peta Status Karyawan!");
         }
 
         function openQrEditModal(index) {
@@ -2134,7 +2498,7 @@
                 qrList[index].capacity = document.getElementById('modalQrCapText').value.trim();
                 qrList[index].pressureType = document.getElementById('modalQrPressureText').value;
                 qrList[index].expDate = document.getElementById('modalQrExpText').value.trim();
-                localStorage.setItem('k3_qr_list_1_150_v12', JSON.stringify(qrList));
+                localStorage.setItem('k3_qr_list_unified_v13', JSON.stringify(qrList));
                 closeQrEditModal();
                 switchQrSubTab('table');
                 alert("Master APAR berhasil diperbarui!");
@@ -2219,8 +2583,17 @@
             btn.disabled = true; btn.textContent = "Mengirim...";
             try {
                 let photoBase64 = "";
+                const captureInput = document.getElementById('photoCapture');
                 const fileInput = document.getElementById('photoFile');
-                if (fileInput.files[0]) photoBase64 = await getBase64(fileInput.files[0]);
+                
+                let activeFile = null;
+                if (captureInput.files && captureInput.files[0]) {
+                    activeFile = captureInput.files[0];
+                } else if (fileInput.files && fileInput.files[0]) {
+                    activeFile = fileInput.files[0];
+                }
+
+                if (activeFile) photoBase64 = await getBase64(activeFile);
 
                 const payload = {
                     action: "apar",
@@ -2246,6 +2619,7 @@
                 await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
                 alert("Data Inspeksi APAR berhasil disimpan!");
                 document.getElementById('aparFormElem').reset();
+                clearPhotoSelection();
                 setAutomaticDates();
                 fetchAparDataAndRenderMaps();
             } catch(e) { alert("Gagal menyimpan data."); }
@@ -2423,7 +2797,7 @@
                         let catatanRekomendasi = r[15] || '-';
                         let namaPetugas = r[16] || '-';
 
-                        let fotoImg = r[17] ? `<button onclick="downloadImage('${r[17]}', '${aparCode}')" class="inline-block group focus:outline-none" title="Klik untuk Download Foto"><img src="${r[17]}" class="w-16 h-16 object-cover rounded-xl border border-slate-300 mx-auto shadow-sm group-hover:scale-110 transition cursor-pointer"></button>` : '-';
+                        let fotoImg = r[17] ? `<button onclick="openPhotoPreviewModal('${r[17]}', '${aparCode}', '${waktuInputPretty}')" class="inline-block group focus:outline-none" title="Klik untuk Preview & Download Foto"><img src="${r[17]}" class="w-16 h-16 object-cover rounded-xl border border-slate-300 mx-auto shadow-sm group-hover:scale-110 transition cursor-pointer"></button>` : '-';
 
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-slate-50 transition">
@@ -2634,9 +3008,9 @@
                         let lokasi = r[4];
                         let statusAwal = r[7] || `Proses`;
                         let uraianTemuan = `<b>[${r[5]}]</b><br>${r[6]}<br><span class="text-[9px] text-amber-800 font-semibold">Status: ${statusAwal}</span>`;
-                        let fotoBefore = r[8] ? `<button onclick="downloadImage('${r[8]}', '${idTemuan}')"><img src="${r[8]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm cursor-pointer hover:scale-110 transition" title="Download Foto"></button>` : '-';
+                        let fotoBefore = r[8] ? `<button onclick="openPhotoPreviewModal('${r[8]}', '${idTemuan}', '${waktuTemuan}')"><img src="${r[8]}" class="w-10 h-10 object-cover rounded-lg border mx-auto shadow-sm cursor-pointer hover:scale-110 transition" title="Preview Foto"></button>` : '-';
                         let uraianTl = r[11] ? `<br><b>TL:</b> ${r[11]}<br><b>PIC:</b> ${r[9]}` : '<br><span class="text-slate-400 italic">Belum TL</span>';
-                        let fotoAfter = r[13] ? `<br><button onclick="downloadImage('${r[13]}', '${idTemuan}_After')"><img src="${r[13]}" class="w-10 h-10 object-cover rounded-lg border mx-auto mt-1 shadow-sm cursor-pointer hover:scale-110 transition" title="Download Foto"></button>` : '';
+                        let fotoAfter = r[13] ? `<br><button onclick="openPhotoPreviewModal('${r[13]}', '${idTemuan}_After', '${waktuTemuan}')"><img src="${r[13]}" class="w-10 h-10 object-cover rounded-lg border mx-auto mt-1 shadow-sm cursor-pointer hover:scale-110 transition" title="Preview Foto"></button>` : '';
 
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-slate-50 transition">
